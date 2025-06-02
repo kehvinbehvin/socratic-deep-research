@@ -1,0 +1,30 @@
+service: my-serverless-app
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  architecture: arm64
+  environment:
+    POSTGRES_HOST: ${env:POSTGRES_HOST, 'localhost'}
+    POSTGRES_PORT: ${env:POSTGRES_PORT, '5432'}
+    POSTGRES_DB: ${env:POSTGRES_DB, 'myapp'}
+    POSTGRES_USER: ${env:POSTGRES_USER, 'postgres'}
+    POSTGRES_PASSWORD: ${env:POSTGRES_PASSWORD, 'postgres'}
+
+functions:
+  hello:
+    handler: src/handler.hello
+    events:
+      - httpApi:
+          path: /hello
+          method: get
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000 
