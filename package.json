@@ -6,29 +6,29 @@
   "scripts": {
     "build": "tsc",
     "start": "serverless offline start",
-    "dev": "docker compose up",
-    "dev:build": "docker compose up --build",
-    "dev:clean": "docker compose down -v",
-    "db:up": "docker compose up postgres -d",
-    "db:down": "docker compose stop postgres",
-    "db:clean": "docker compose down postgres -v",
-    "watch": "tsc -w",
-    "start:local": "npm run db:clean && npm run db:up && sleep 5 && npm run build && npm run start",
-    "start:fresh": "npm run db:clean && npm run dev:build"
+    "services:up": "docker compose up",
+    "services:down": "docker compose down",
+    "services:clean": "docker compose down -v",
+    "dev": "npm run services:up -d && npm run build && npm run start",
+    "dev:clean": "npm run services:clean && npm run services:up -d && npm run build && npm run start",
+    "watch": "tsc -w"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@serverless/utils": "^6.15.0",
     "@types/aws-lambda": "^8.10.134",
     "@types/node": "^20.11.24",
     "@types/pg": "^8.11.2",
-    "serverless": "^4.0.0",
-    "serverless-offline": "^14.4.0",
+    "serverless": "^4.4.10",
+    "serverless-offline": "^14.3.4",
+    "serverless-offline-sqs": "^8.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.525.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "typeorm": "^0.3.20"

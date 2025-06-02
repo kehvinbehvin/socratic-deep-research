@@ -1,10 +1,10 @@
-service: my-serverless-app
+service: relocate-v5
 
 frameworkVersion: '4'
 
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: us-east-1
   architecture: arm64
   environment:
@@ -13,18 +13,69 @@ provider:
     POSTGRES_DB: ${env:POSTGRES_DB, 'myapp'}
     POSTGRES_USER: ${env:POSTGRES_USER, 'postgres'}
     POSTGRES_PASSWORD: ${env:POSTGRES_PASSWORD, 'postgres'}
+    QUEUE_ENDPOINT: ${env:QUEUE_ENDPOINT, 'http://localhost:9324'}
+    QUEUE_REGION: ${env:QUEUE_REGION, 'elasticmq'}
+    QUEUE_ACCESS_KEY_ID: ${env:QUEUE_ACCESS_KEY_ID, 'root'}
+    QUEUE_SECRET_ACCESS_KEY: ${env:QUEUE_SECRET_ACCESS_KEY, 'root'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource: 
+            - !GetAtt MessageQueue.Arn
+            - !GetAtt MessageQueueDLQ.Arn
 
 functions:
   hello:
-    handler: src/handler.hello
+    handler: dist/handler.hello
     events:
       - httpApi:
           path: /hello
           method: get
 
+  testQueue:
+    handler: dist/handler.testQueue
+    events:
+      - httpApi:
+          path: /test-queue
+          method: post
+  
+  processMessage:
+    handler: dist/handler.processMessage
+    events:
+      - sqs:
+          arn: arn:aws:sqs:${self:provider.region}:queue:message-queue
+          batchSize: 1
+
+resources:
+  Resources:
+    MessageQueueDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: message-queue-dead-letters
+    
+    MessageQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: message-queue
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt MessageQueueDLQ.Arn
+          maxReceiveCount: 3
+
 plugins:
+  - serverless-offline-sqs
   - serverless-offline
 
 custom:
   serverless-offline:
-    httpPort: 3000 
+    httpPort: 3000
+  serverless-offline-sqs:
+    autoCreate: true
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: elasticmq
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false 
