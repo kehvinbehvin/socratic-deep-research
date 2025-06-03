@@ -1,26 +1,17 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { SearchQuery } from './SearchQuery';
-import { CrawlResult } from './CrawlResult';
-
-interface SearchResultItem {
-  url: string;
-  title: string;
-  snippet: string;
-  rank: number;
-}
+import { Topic } from './Topic';
+import { Review } from './Review';
+import { nullable } from 'zod';
 
 @Entity()
 export class SearchResult extends BaseEntity {
-  @Column('jsonb')
-  results: SearchResultItem[];
+  @Column('text')
+  url: string;
 
-  @ManyToOne(() => SearchQuery, searchQuery => searchQuery.searchResults)
-  searchQuery: SearchQuery;
+  @ManyToOne(() => Topic, topic => topic.searchResults)
+  topic: Topic;
 
-  @Column('uuid')
-  searchQueryId: string;
-
-  @OneToMany(() => CrawlResult, crawlResult => crawlResult.searchResult)
-  crawlResults: CrawlResult[];
+  @OneToOne(() => Review, review => review.searchResult, { nullable: true })
+  review: Review;
 } 

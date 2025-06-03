@@ -1,25 +1,15 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { QueryPreparation } from './QueryPreparation';
-import { SearchResult } from './SearchResult';
+import { Topic } from './Topic';
 
 @Entity()
 export class SearchQuery extends BaseEntity {
-  @Column('simple-array')
-  queries: string[];
-
-  @Column('simple-array')
-  keywords: string[];
+  @Column('text')
+  query: string;
 
   @Column('text')
-  reasoning: string;
+  keyword: string;
 
-  @ManyToOne(() => QueryPreparation, queryPreparation => queryPreparation.searchQueries)
-  queryPreparation: QueryPreparation;
-
-  @Column('uuid')
-  queryPreparationId: string;
-
-  @OneToMany(() => SearchResult, searchResult => searchResult.searchQuery)
-  searchResults: SearchResult[];
+  @ManyToOne(() => Topic, topic => topic.searchQueries)
+  topic: Topic;
 } 

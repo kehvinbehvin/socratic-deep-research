@@ -1,34 +1,22 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { CrawlResult } from './CrawlResult';
-
-interface ReliabilityAssessment {
-  score: number;
-  reasoning: string;
-  credibilityFactors: string[];
-  potentialBiases: string[];
-}
-
-interface ReviewResultItem {
-  url: string;
-  title?: string;
-  reliability?: ReliabilityAssessment;
-  relevantChunks?: Array<{
-    content: string;
-    relevanceScore: number;
-  }>;
-  error?: string;
-  success: boolean;
-}
+import { Topic } from './Topic';
+import { SearchResult } from './SearchResult';
 
 @Entity()
 export class Review extends BaseEntity {
-  @Column('jsonb')
-  results: ReviewResultItem[];
+  @Column('text')
+  chunkId: string; // chunk id from vector db
 
-  @ManyToOne(() => CrawlResult, crawlResult => crawlResult.reviews)
-  crawlResult: CrawlResult;
+  @Column('int32')
+  relevance: number;
 
-  @Column('uuid')
-  crawlResultId: string;
+  @Column('int32')
+  reliability: number;
+
+  @ManyToOne(() => Topic, topic => topic.searchResults)
+  topic: Topic;
+
+  @OneToOne(() => SearchResult, searchResult => searchResult.review)
+  searchResult: SearchResult;
 } 
