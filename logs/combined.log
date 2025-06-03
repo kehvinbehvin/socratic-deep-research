@@ -542,3 +542,228 @@
 {"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:42:45.173Z"}
 {"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:42:45.173Z"}
 {"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:42:45.173Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:10.879Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:10.941Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:10.941Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:11.028Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:11.028Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:11.028Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:11.105Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:11.105Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:11.105Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:11.174Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:11.174Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:11.174Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:11.243Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:11.243Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:11.243Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:11.315Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:11.315Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:11.315Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:12.349Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:12.350Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:12.350Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:12.430Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:12.430Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:12.430Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:12.504Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:12.504Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:12.505Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:13.316Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:13.316Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:13.317Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:13.390Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:13.390Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:13.390Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:14.309Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:14.309Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:14.309Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:14.383Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:14.383Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:14.383Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:14.461Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:14.461Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:14.461Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:14.533Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:14.533Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:14.533Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:15.650Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:15.650Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:15.650Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:16.131Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:16.131Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:16.132Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:16.410Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:16.410Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:16.410Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:57:18.433Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:57:18.433Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T09:57:18.433Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:59:36.676Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:59:36.728Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T09:59:36.728Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T09:59:36.729Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T09:59:36.729Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:59:58.632Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:59:58.632Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T09:59:58.633Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T09:59:58.633Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T09:59:58.633Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T09:59:58.719Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T09:59:58.719Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T09:59:58.719Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T09:59:58.719Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T09:59:58.719Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:00:03.348Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:00:03.348Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:00:03.349Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:00:03.349Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:00:03.349Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:00:03.425Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:00:03.425Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:00:03.425Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:00:03.425Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:00:03.425Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:02:30.826Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:02:30.880Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:02:30.880Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:02:30.880Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:02:30.881Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:02:34.265Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:02:34.265Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:02:34.265Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:02:34.266Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:02:34.266Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:02:34.352Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:02:34.352Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:02:34.352Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:02:34.352Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:02:34.353Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:02:36.466Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:02:36.467Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:02:36.467Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:02:36.467Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:02:36.467Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:02:36.545Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:02:36.545Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:02:36.545Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:02:36.545Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:02:36.545Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:04:58.694Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:04:58.741Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:04:58.741Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:04:58.742Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:04:58.742Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:04:58.820Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:04:58.820Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:04:58.820Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:04:58.820Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:04:58.821Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:05:57.734Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:05:57.734Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:05:57.734Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:05:57.734Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:05:57.735Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:05:57.867Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:05:57.867Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:05:57.867Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:05:57.867Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:05:57.868Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:15.394Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:15.394Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:06:15.394Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:06:15.394Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:06:15.394Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:15.498Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:15.499Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:06:15.499Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:06:15.499Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:06:15.499Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:28.010Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:28.061Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:28.062Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:28.134Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:28.134Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:28.134Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:28.446Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:28.446Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:28.446Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:28.517Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:28.517Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:28.517Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:29.297Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:29.297Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:06:29.297Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:06:29.297Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:06:29.298Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:29.391Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:29.391Z"}
+{"level":"info","message":"Fetching system metrics","timestamp":"2025-06-03T10:06:29.391Z"}
+{"level":"info","message":"System Health Status","queueHealth":{"clarification-queue":"healthy","complete-queue":"healthy","crawl-queue":"healthy","query-preparation-queue":"healthy","question-queue":"healthy","reflection-queue":"healthy","review-queue":"healthy","search-queue":"healthy","topic-queue":"healthy"},"status":"healthy","timestamp":"2025-06-03T10:06:29.391Z"}
+{"healthStatus":"healthy","level":"info","message":"Successfully fetched system metrics","queueCount":18,"timestamp":"2025-06-03T10:06:29.392Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:29.769Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:29.769Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:29.769Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:29.865Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:29.865Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:29.865Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:30.775Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:30.775Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:30.775Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:30.855Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:30.855Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:30.855Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:31.789Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:31.790Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:31.790Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:31.854Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:31.854Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:31.854Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:32.794Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:32.794Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:32.794Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:32.879Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:32.879Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:32.879Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:32.944Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:32.945Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:32.945Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:33.798Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:33.798Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:33.798Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:33.862Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:33.862Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:33.862Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:34.763Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:34.763Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:34.763Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:34.825Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:34.825Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:34.825Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:34.887Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:34.887Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:34.887Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:35.974Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:35.974Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:35.974Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:36.150Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:36.150Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:36.150Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:36.844Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:36.844Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:36.844Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:37.303Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:37.303Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:37.303Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:37.923Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:37.923Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:37.923Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:38.818Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:38.819Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:38.819Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:39.511Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:39.512Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:39.512Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T10:06:41.710Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T10:06:41.711Z"}
+{"level":"info","message":"Getting studies","timestamp":"2025-06-03T10:06:41.711Z"}

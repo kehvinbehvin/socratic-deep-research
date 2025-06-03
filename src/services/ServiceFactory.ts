@@ -16,6 +16,9 @@ import { CrawlHandler } from '../handlers/CrawlHandler';
 import { ReviewHandler } from '../handlers/ReviewHandler';
 import { CompletedHandler } from '../handlers/CompletedHandler';
 import { StudyService } from './StudiesService';
+import { MetricsService } from './MetricsService';
+import { SystemMonitor } from '../utils/monitor';
+import { MonitoringService } from './MonitoringService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -26,10 +29,13 @@ export class ServiceFactory {
   private fireCrawlService: FireCrawlService;
   private s3Service: S3Service;
   private loggerService: LoggerService;
-  private studyService: StudyService;
+  private systemMonitor: SystemMonitor;
+  private monitoring: MonitoringService;
   
   constructor() {
     this.loggerService = LoggerService.getInstance();
+    this.monitoring = MonitoringService.getInstance();
+    this.systemMonitor = new SystemMonitor();
     this.queueService = new QueueService(
       process.env.QUEUE_ENDPOINT || 'http://localhost:9324',
       process.env.QUEUE_REGION || 'us-east-1',
@@ -165,5 +171,13 @@ export class ServiceFactory {
 
   public getStudyService(): StudyService {
     return new StudyService(this.dataSource, this.loggerService);
+  }
+
+  public getMetricsService(): MetricsService {
+    return new MetricsService(
+      this.monitoring,
+      this.systemMonitor,
+      this.loggerService
+    );
   }
 } 

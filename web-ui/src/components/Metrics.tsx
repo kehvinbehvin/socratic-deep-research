@@ -24,7 +24,11 @@ ChartJS.register(
 );
 
 interface MetricsData {
-  [key: string]: QueueMetrics[];
+  systemHealth: {
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    queueHealth: Record<string, 'healthy' | 'degraded' | 'unhealthy'>;
+  };
+  queueMetrics: Record<string, QueueMetrics[]>;
 }
 
 const queueNames = [
@@ -36,7 +40,7 @@ const queueNames = [
   'search-queue',
   'crawl-queue',
   'review-queue',
-  'completed-queue'
+  'complete-queue'
 ] as const;
 
 type QueueName = typeof queueNames[number];
@@ -50,8 +54,7 @@ const formatQueueName = (name: QueueName) => {
 };
 
 export function Metrics() {
-  const [health, setHealth] = useState<SystemHealth | null>(null);
-  const [metrics, setMetrics] = useState<MetricsData>({});
+  const [metricsData, setMetricsData] = useState<MetricsData | null>(null);
 
   useEffect(() => {
     fetchMetrics();
@@ -61,13 +64,12 @@ export function Metrics() {
 
   const fetchMetrics = async () => {
     try {
-      const response = await fetch('http://localhost:3000/metrics');
+      const response = await fetch('http://localhost:3000/api/metrics');
       if (!response.ok) {
         throw new Error('Failed to fetch metrics');
       }
       const data = await response.json();
-      setHealth(data.health);
-      setMetrics(data.metrics);
+      setMetricsData(data);
     } catch (error) {
       console.error('Error fetching metrics:', error);
     }
@@ -88,6 +90,10 @@ export function Metrics() {
     }
   };
 
+  if (!metricsData) {
+    return <div>Loading metrics...</div>;
+  }
+
   return (
     <div className="container">
       {/* System Health */}
@@ -95,27 +101,28 @@ export function Metrics() {
         <h3 className="text-lg font-medium text-gray-900">
           System Health
         </h3>
-        {health && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {queueNames.map(queueName => (
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {queueNames.map(queueName => {
+            const queueHealth = metricsData.systemHealth.queueHealth[queueName] || 'unhealthy';
+            return (
               <div key={queueName} className="card">
                 <h4 className="text-gray-500 font-medium">
                   {formatQueueName(queueName)}
                 </h4>
                 <div className="mt-2 flex items-center">
-                  <div className={`flex items-center ${health.queueHealth[queueName] === 'healthy' ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`flex items-center ${queueHealth === 'healthy' ? 'text-green-600' : 'text-red-600'}`}>
                     <span className="text-2xl font-medium">
-                      {health.queueHealth[queueName] === 'healthy' ? '✓' : '✗'}
+                      {queueHealth === 'healthy' ? '✓' : '✗'}
                     </span>
                     <span className="ml-2 text-sm font-medium">
-                      {health.queueHealth[queueName].charAt(0).toUpperCase() + health.queueHealth[queueName].slice(1)}
+                      {queueHealth.charAt(0).toUpperCase() + queueHealth.slice(1)}
                     </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
       {/* Queue Metrics */}
@@ -125,8 +132,8 @@ export function Metrics() {
         </h3>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {queueNames.map(queueName => {
-            const queueLengthMetrics = metrics[`${queueName}_length`] || [];
-            const processingTimeMetrics = metrics[`${queueName}_processing_time`] || [];
+            const queueLengthMetrics = metricsData.queueMetrics[`${queueName}_length`] || [];
+            const processingTimeMetrics = metricsData.queueMetrics[`${queueName}_processing_time`] || [];
 
             return (
               <div key={queueName} className="card">

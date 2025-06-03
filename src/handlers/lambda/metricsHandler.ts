@@ -3,7 +3,7 @@ import { createLambdaHandler } from '../../utils/lambda';
 export const handler = createLambdaHandler({
   schema: undefined, 
   handler: async (input, serviceFactory) => {
-    const studies = await serviceFactory.getStudyService();
-    return await studies.getStudies()
+    const metricService = await serviceFactory.getMetricsService();
+    return await metricService.getMetrics();
   },
 }); 

@@ -69,6 +69,14 @@ functions:
           path: /api/study
           method: GET
 
+  getMetricsApi:
+    handler: dist/handlers/lambda/metricsHandler.handler
+    timeout: 10
+    events:
+      - httpApi:
+          path: /api/metrics
+          method: GET
+
   # Queue processing handlers
   processTopic:
     handler: dist/handlers/lambda/topicHandler.handler
