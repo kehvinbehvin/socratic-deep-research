@@ -1,6 +1,6 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { CrawlResult } from '../types';
+import type { CrawlResult, Topic } from '../types';
 
 @Entity()
 export class Review extends BaseEntity {
@@ -19,4 +19,7 @@ export class Review extends BaseEntity {
 
   @ManyToOne('CrawlResult', 'reviews')
   crawlResult: CrawlResult;
+
+  @OneToOne('Topic', 'review')
+  topic: Topic;
 } 
