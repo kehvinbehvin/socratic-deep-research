@@ -10,7 +10,7 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
   protected queueService: QueueService;
   protected dataSource: DataSource;
   protected repository: Repository<TOutput>;
-  protected inputQueue: QueueName;
+  protected inputQueue?: QueueName;
   protected outputQueue?: QueueName;
   protected logger: LoggerService;
   protected monitoring: MonitoringService;
@@ -19,7 +19,7 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
     queueService: QueueService,
     dataSource: DataSource,
     entity: EntityTarget<TOutput>,
-    inputQueue: QueueName,
+    inputQueue?: QueueName,
     outputQueue?: QueueName
   ) {
     this.queueService = queueService;
@@ -58,7 +58,9 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
       }
 
       // Delete the processed message from the queue
-      await this.queueService.deleteMessage(this.inputQueue, receiptHandle);
+      if (this.inputQueue) {
+          await this.queueService.deleteMessage(this.inputQueue, receiptHandle);
+      }
       
       this.logger.info(`Successfully processed message ${id}`, {
         queue: this.inputQueue,
@@ -76,7 +78,9 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
       });
 
       // Record error metric
-      this.monitoring.recordError(this.inputQueue, error instanceof Error ? error : new Error(String(error)));
+      if (this.inputQueue) {
+        this.monitoring.recordError(this.inputQueue, error instanceof Error ? error : new Error(String(error)));
+      }
 
       // Update entity status to failed if we have its ID
       if ('id' in body) {
@@ -94,53 +98,18 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
       }
 
       // Return message to queue with backoff
-      await this.queueService.changeMessageVisibility(
-        this.inputQueue,
-        receiptHandle,
-        300 // 5 minutes backoff
-      );
+      if (this.inputQueue) {
+        await this.queueService.changeMessageVisibility(
+          this.inputQueue,
+          receiptHandle,
+          300 // 5 minutes backoff
+        );
+      }
     } finally {
       // Stop the timer and record the duration
       stopTimer();
     }
-  }
-
-  async start(): Promise<void> {
-    this.logger.info(`Starting handler`, { queue: this.inputQueue });
-
-    while (true) {
-      try {
-        const messages = await this.queueService.receiveMessages<TInput>(this.inputQueue);
-        
-        // Record queue metrics
-        this.monitoring.recordQueueMetrics(
-          this.inputQueue,
-          messages.length,
-          0 // Initial processing time
-        );
-
-        if (messages.length > 0) {
-          this.logger.debug(`Received messages`, {
-            queue: this.inputQueue,
-            count: messages.length
-          });
-        }
-
-        await Promise.all(messages.map(msg => this.processMessage(msg)));
-      } catch (error) {
-        this.logger.error(`Error in message processing loop`, {
-          queue: this.inputQueue,
-          error: error instanceof Error ? error.stack : String(error)
-        });
-        
-        // Record error metric
-        this.monitoring.recordError(this.inputQueue, error instanceof Error ? error : new Error(String(error)));
-
-        // Wait a bit before retrying
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    }
-  }
+  } 
 
   protected abstract process(input: TInput): Promise<TOutput>;
 
@@ -153,10 +122,12 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
     const savedEntity = await this.repository.save(result);
 
     // For API requests, we should queue the entity for background processing
-    await this.queueService.sendMessage(this.inputQueue, {
-      id: savedEntity.id,
-      ...input
-    });
+    if (this.inputQueue) {
+      await this.queueService.sendMessage(this.inputQueue, {
+        id: savedEntity.id,
+        ...input
+      });
+    }
 
     return savedEntity;
   }

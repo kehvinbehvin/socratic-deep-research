@@ -43,9 +43,17 @@ export class ReviewHandler extends BaseHandler<ReviewInput, Review> {
     }
 
     // Create review entity
+    // TODO: Implement review logic properly
     const review = new Review();
     review.crawlResult = crawlResult;
     review.status = ProcessingStatus.PENDING;
+    review.relevantChunks = [
+      {
+        content: 'Google is a search engine',
+        relevanceScore: 0.9,
+        vectorId: '123'
+      }
+    ]
 
     // TODO: Implement review logic
     // This will involve:

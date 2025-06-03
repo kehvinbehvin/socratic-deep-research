@@ -13,7 +13,8 @@ import { FireCrawlService } from './FireCrawlService';
 import { ReviewHandler } from '../handlers/ReviewHandler';
 import { SerpApiService } from './SerpApiService';
 import { S3Service } from './S3Service';
-import { Logger } from '../utils/logger';
+import { CompletedHandler } from '../handlers/CompletedHandler';
+import { LoggerService } from './LoggerService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -140,7 +141,7 @@ export class ServiceFactory {
     if (!this.fireCrawlService) {
       this.fireCrawlService = new FireCrawlService(
         this.getS3Service(),
-        new Logger('FireCrawlService')
+        LoggerService.getInstance()
       );
     }
     return this.fireCrawlService;
@@ -176,6 +177,14 @@ export class ServiceFactory {
         handlerKey,
         new StudyHandler(this.queueService, this.dataSource)
       );
+    }
+    return this.handlers.get(handlerKey);
+  }
+
+  getCompletedHandler(): CompletedHandler {
+    const handlerKey = 'completed';
+    if (!this.handlers.has(handlerKey)) {
+      this.handlers.set(handlerKey, new CompletedHandler(this.queueService, this.dataSource, this.getOpenAIService()));
     }
     return this.handlers.get(handlerKey);
   }

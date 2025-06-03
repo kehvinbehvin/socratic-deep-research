@@ -3,7 +3,9 @@ import { createLambdaHandler } from '../../utils/lambda';
 
 // Reflection request schema
 const ReflectionRequestSchema = z.object({
+  reflectionId: z.string().uuid(),
   questionId: z.string().uuid(),
+  topicId: z.string().uuid(),
   content: z.string().min(1),
 });
 

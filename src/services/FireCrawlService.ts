@@ -1,11 +1,11 @@
-import { S3Service } from './S3Service';
-import { Logger } from '../utils/logger';
+import { S3Service } from '../services/S3Service';
+import { LoggerService } from '../services/LoggerService';
 
 export class FireCrawlService {
   private s3Service: S3Service;
-  private logger: Logger;
+  private logger: LoggerService;
 
-  constructor(s3Service: S3Service, logger: Logger) {
+  constructor(s3Service: S3Service, logger: LoggerService) {
     this.s3Service = s3Service;
     this.logger = logger;
   }

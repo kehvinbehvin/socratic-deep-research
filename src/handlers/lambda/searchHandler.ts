@@ -3,7 +3,7 @@ import { createLambdaHandler } from '../../utils/lambda';
 
 // Search request schema
 const SearchRequestSchema = z.object({
-  queryPreparationId: z.string().uuid(),
+  searchResultId: z.string().uuid(),
 });
 
 export const handler = createLambdaHandler({

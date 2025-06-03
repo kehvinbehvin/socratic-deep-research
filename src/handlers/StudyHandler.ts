@@ -6,22 +6,22 @@ import { ProcessingStatus } from '../entities/BaseEntity';
 import { DataSource } from 'typeorm';
 import { QueueService } from '../services/QueueService';
 
-interface TopicInput {
+interface StudyInput {
   content: string;
 }
 
-export class TopicHandler extends BaseHandler<TopicInput, Topic> {
+export class StudyHandler extends BaseHandler<StudyInput, Topic> {
   constructor(queueService: QueueService, dataSource: DataSource) {
-    super(queueService, dataSource, Topic, QUEUE_NAMES.TOPIC);
+    super(queueService, dataSource, Topic, undefined, QUEUE_NAMES.TOPIC);
   }
 
   // Public method for handling web requests
-  public async handleRequest(input: TopicInput): Promise<Topic> {
+  public async handleRequest(input: StudyInput): Promise<Topic> {
     return this.process(input);
   }
 
   // Protected method for internal queue processing
-  protected async process(input: TopicInput): Promise<Topic> {
+  protected async process(input: StudyInput): Promise<Topic> {
     const topic = new Topic();
     topic.content = input.content;
     topic.status = ProcessingStatus.PENDING;

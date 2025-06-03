@@ -41,26 +41,28 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationInput, 
       throw new Error(`Query preparation not found: ${input.queryPreparationId}`);
     }
 
+    // TODO: Implement search integration with serpapi service properly
     // Get first search query and keywords
-    const query = queryPreparation.searchQueries.split('\n')[0].trim();
-    const keywords = queryPreparation.keywords.split(',').map(k => k.trim());
+    // const query = queryPreparation.searchQueries.split('\n')[0].trim();
+    // const keywords = queryPreparation.keywords.split(',').map(k => k.trim());
 
-    // Perform search with enhanced query
-    const enhancedQuery = `${query} ${keywords.slice(0, 3).join(' ')}`;
-    const results = await this.serpApiService.search(enhancedQuery, 5);
+    // // Perform search with enhanced query
+    // const enhancedQuery = `${query} ${keywords.slice(0, 3).join(' ')}`;
+    // const results = await this.serpApiService.search(enhancedQuery, 5);
 
-    // Map to our result format
-    const searchResults = results.map(result => ({
-      url: result.url,
-      title: result.title,
-      snippet: result.snippet,
-      rank: result.position
-    }));
+    // // Map to our result format
+    // const searchResults = results.map(result => ({
+    //   url: result.url,
+    //   title: result.title,
+    //   snippet: result.snippet,
+    //   rank: result.position
+    // }));
 
     // Create search result entity
     const searchResult = new SearchResult();
     searchResult.queryPreparation = queryPreparation;
-    searchResult.results = searchResults;
+    // searchResult.results = searchResults;
+    searchResult.results = [];
     searchResult.status = ProcessingStatus.PENDING;
 
     return searchResult;

@@ -3,6 +3,7 @@ import { createLambdaHandler } from '../../utils/lambda';
 
 // Question request schema
 const QuestionRequestSchema = z.object({
+  questionId: z.string().uuid(),
   topicId: z.string().uuid(),
   content: z.string().min(1),
 });

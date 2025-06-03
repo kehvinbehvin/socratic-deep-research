@@ -7,6 +7,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev:build": "tsc -w",
+    "web:start": "node src/app.ts",
     "dev:start": "serverless offline start --noPrependStageInUrl --httpPort 3000",
     "dev": "concurrently \"npm run dev:build\" \"npm run dev:start\"",
     "services:up": "docker compose up -d",

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Logger } from '../utils/logger';
+import { LoggerService } from '../services/LoggerService';
 
 interface SerpApiResult {
   position: number;
@@ -10,11 +10,11 @@ interface SerpApiResult {
 
 export class SerpApiService {
   private readonly apiKey: string;
-  private readonly logger: Logger;
+  private readonly logger: LoggerService;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
-    this.logger = new Logger('SerpApiService');
+    this.logger = LoggerService.getInstance();
   }
 
   async search(query: string, numResults: number = 10): Promise<SerpApiResult[]> {

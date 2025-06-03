@@ -19,12 +19,9 @@ async function startApplication() {
   }
 }
 
-// Only start the application if we're not in Lambda
-if (process.env.AWS_LAMBDA_FUNCTION_NAME === undefined) {
-  startApplication().catch(error => {
-    logger.error('Fatal error', {
-      error: error instanceof Error ? error.stack : String(error)
-    });
-    process.exit(1);
+startApplication().catch(error => {
+  logger.error('Fatal error', {
+    error: error instanceof Error ? error.stack : String(error)
   });
-} 
+  process.exit(1);
+});
