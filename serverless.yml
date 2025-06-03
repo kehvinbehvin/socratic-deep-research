@@ -31,10 +31,10 @@ provider:
 functions:
   # API Gateway handlers
   topicApi:
-    handler: dist/handlers/lambda/topicHandler.handler
+    handler: dist/handlers/lambda/studyHandler.handler
     events:
       - httpApi:
-          path: /api/topics
+          path: /api/study
           method: POST
 
   # Queue processing handlers
@@ -102,13 +102,13 @@ functions:
           arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:review-queue
           batchSize: 1
 
-  # Web interface
-  app:
-    handler: dist/app.startApplication
+  processCompleted:
+    handler: dist/handlers/lambda/completedHandler.handler
+    reservedConcurrency: 5
     events:
-      - httpApi:
-          path: /{proxy+}
-          method: any
+      - sqs:
+          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:completed-queue
+          batchSize: 1
 
 plugins:
   - serverless-offline-sqs
