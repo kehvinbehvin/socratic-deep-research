@@ -140,12 +140,12 @@ protected async transformQueueMessage(message: QueueMessage<any>): Promise<TInpu
     const savedEntity = await this.repository.save(result);
 
     // For API requests, we should queue the entity for background processing
-    if (this.sourceQueue) {
+    if (this.targetQueue) {
       const queueMessage: QueueMessage<TOutput> = {
         entityType: this.repository.metadata.name,
         entity: savedEntity
       };
-      await this.queueService.sendMessage(this.sourceQueue, queueMessage);
+      await this.queueService.sendMessage(this.targetQueue, queueMessage);
     }
 
     return savedEntity;
