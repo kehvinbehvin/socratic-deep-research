@@ -6,7 +6,7 @@ import { FireCrawlService } from '../services/FireCrawlService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
-import type { S3Link } from '../entities/CrawlResult';
+// import type { S3Link } from '../entities/CrawlResult';
 
 interface CrawlInput {
   searchResultId: string;

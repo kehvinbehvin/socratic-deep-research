@@ -6,7 +6,7 @@ import { FireCrawlService } from '../services/FireCrawlService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
-import type { S3Link } from '../entities/CrawlResult';
+// import type { S3Link } from '../entities/CrawlResult';
 
 interface SearchInput {
   searchResultId: string;
@@ -68,7 +68,8 @@ export class SearchHandler extends BaseHandler<SearchInput, CrawlResult> {
     // Create crawl result entity
     const crawlResult = new CrawlResult();
     crawlResult.searchResult = searchResult;
-    crawlResult.s3Links = s3Links as S3Link[];
+    // crawlResult.s3Links = s3Links as S3Link[];
+    crawlResult.s3Links = [];
     crawlResult.status = ProcessingStatus.PENDING;
 
     return crawlResult;
