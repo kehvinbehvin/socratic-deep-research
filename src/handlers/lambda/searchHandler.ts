@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Search request schema
-const SearchRequestSchema = z.object({
-  searchResultId: z.string().uuid(),
-});
+import { SearchQueueSchema } from '../SearchHandler';
 
 export const handler = createLambdaHandler({
-  schema: SearchRequestSchema,
+  schema: SearchQueueSchema,
   handler: async (input, serviceFactory) => {
     const searchHandler = serviceFactory.getSearchHandler();
-    return searchHandler.handleRequest(input);
+    return searchHandler.handleQueueMessage({ entity: input });
   },
 }); 

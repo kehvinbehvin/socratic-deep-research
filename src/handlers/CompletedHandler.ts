@@ -1,64 +1,61 @@
 import { BaseHandler } from './BaseHandler';
 import { Review } from '../entities/Review';
-import { QueueService } from '../services/QueueService';
-import { OpenAIService } from '../services/OpenAIService';
-import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
-import { ProcessingStatus } from '../entities/BaseEntity';
 import { Topic } from '../entities/Topic';
+import { QueueService } from '../services/QueueService';
+import { DataSource } from 'typeorm';
+import { ProcessingStatus } from '../entities/BaseEntity';
+import { z } from 'zod';
 
-interface CompletedInput {
-  reviewResultId: string;
-}
+// Schema for queue messages
+export const CompletedQueueSchema = z.object({
+  id: z.string().uuid(),
+  reviewId: z.string().uuid()
+});
 
-export class CompletedHandler extends BaseHandler<CompletedInput, Topic> {
-  private openAIService: OpenAIService;
+export type CompletedQueueInput = z.infer<typeof CompletedQueueSchema>;
 
-  constructor(
-    queueService: QueueService,
-    dataSource: DataSource,
-    openAIService: OpenAIService
-  ) {
-    super(
-      queueService,
-      dataSource,
-      Topic,
-      QUEUE_NAMES.COMPLETE
-    );
-    this.openAIService = openAIService;
+export class CompletedHandler extends BaseHandler<CompletedQueueInput, Topic> {
+  constructor(queueService: QueueService, dataSource: DataSource) {
+    super(queueService, dataSource, Topic, 'COMPLETE', undefined);
   }
 
-  protected async process(input: CompletedInput): Promise<Topic> {
-    // Get the review result
+  protected async transformQueueMessage(message: any): Promise<CompletedQueueInput> {
+    // Extract just the fields we need from the queue message
+    const { id, reviewId } = message.entity;
+    return { id, reviewId };
+  }
+
+  protected async process(input: CompletedQueueInput): Promise<Topic> {
     const review = await this.dataSource
       .getRepository(Review)
       .findOne({
-        where: { id: input.reviewResultId },
-        relations: ['topic']
+        where: { id: input.id },
+        relations: [
+          'crawlResult',
+          'crawlResult.searchResult',
+          'crawlResult.searchResult.searchQuery',
+          'crawlResult.searchResult.searchQuery.queryPreparation',
+          'crawlResult.searchResult.searchQuery.queryPreparation.clarification',
+          'crawlResult.searchResult.searchQuery.queryPreparation.clarification.reflection',
+          'crawlResult.searchResult.searchQuery.queryPreparation.clarification.reflection.question',
+          'crawlResult.searchResult.searchQuery.queryPreparation.clarification.reflection.question.topic'
+        ]
       });
 
     if (!review) {
-      throw new Error(`Review result not found: ${input.reviewResultId}`);
+      throw new Error(`Review not found: ${input.id}`);
     }
 
+    // Get the topic through the relationship chain
+    const topic = review.crawlResult.searchResult.searchQuery.queryPreparation.clarification.reflection.question.topic;
 
-    const topic = await this.dataSource
-      .getRepository(Topic)
-      .findOne({
-        where: { id: review.topic.id }
-      });
-
-    if (!topic) {
-      throw new Error(`Topic not found: ${review.topic.id}`);
-    }
-
+    // Update topic status to completed
     topic.status = ProcessingStatus.COMPLETED;
+    const updatedTopic = await this.dataSource.getRepository(Topic).save(topic);
 
-    // TODO: Run any clean up logic or post topic processing logic
+    // Log completion
+    console.info(`Study completed for topic: ${topic.id}`);
 
-    // Save to database
-    const savedTopic = await this.repository.save(topic);
-
-    return savedTopic;
+    return updatedTopic;
   }
 } 

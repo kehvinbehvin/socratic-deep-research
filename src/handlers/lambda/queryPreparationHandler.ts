@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Query preparation request schema
-const QueryPreparationRequestSchema = z.object({
-  queryPreparationId: z.string().uuid(),
-});
+import { QueryPreparationQueueSchema } from '../QueryPreparationHandler';
 
 export const handler = createLambdaHandler({
-  schema: QueryPreparationRequestSchema,
+  schema: QueryPreparationQueueSchema,
   handler: async (input, serviceFactory) => {
     const queryPreparationHandler = serviceFactory.getQueryPreparationHandler();
-    return queryPreparationHandler.handleRequest(input);
+    return queryPreparationHandler.handleQueueMessage({ entity: input });
   },
 }); 

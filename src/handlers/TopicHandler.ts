@@ -25,7 +25,7 @@ export type TopicQueueInput = z.infer<typeof TopicQueueSchema>;
 // Union type for all possible inputs
 export type TopicInput = CreateTopicInput | TopicQueueInput;
 
-export class TopicHandler extends BaseHandler<TopicInput, Topic> {
+export class TopicHandler extends BaseHandler<TopicQueueInput, Topic> {
   private openAIService: OpenAIService;
 
   constructor(
@@ -33,58 +33,48 @@ export class TopicHandler extends BaseHandler<TopicInput, Topic> {
     dataSource: DataSource,
     openAIService: OpenAIService
   ) {
-    super(
-      queueService,
-      dataSource,
-      Topic,
-      QUEUE_NAMES.TOPIC,
-      QUEUE_NAMES.QUESTION
-    );
+    super(queueService, dataSource, Topic, 'TOPIC', 'QUESTION');
     this.openAIService = openAIService;
   }
 
-  protected async transformQueueMessage(message: any): Promise<TopicInput> {
+  protected async transformQueueMessage(message: any): Promise<TopicQueueInput> {
     // Extract just the fields we need from the queue message
     const { id, content } = message.entity;
     return { id, content };
   }
 
-  protected async process(input: TopicInput): Promise<Topic> {
-    // If this is a new topic (from API)
-    if (!('id' in input)) {
-      const topic = new Topic();
-      topic.content = input.content;
-      topic.status = ProcessingStatus.PENDING;
-      return topic;
-    }
-
-    // If this is a queued topic
-    const topic = await this.repository.findOne({ 
-      where: { id: input.id },
-      relations: ['questions']
-    });
+  protected async process(input: TopicQueueInput): Promise<Topic> {
+    // Get the topic
+    const topic = await this.dataSource
+      .getRepository(Topic)
+      .findOne({
+        where: { id: input.id }
+      });
 
     if (!topic) {
       throw new Error(`Topic not found: ${input.id}`);
     }
 
-    // Generate follow-up questions using OpenAI
+    // Generate questions using OpenAI
     const prompt = `Given the topic "${topic.content}", generate 2-3 follow-up questions that would help deepen understanding through the Socratic method.`;
     const questions = await this.openAIService.generateQuestions(prompt);
 
     // Create question entities
-    const questionEntities = questions.map((questionText: string) => {
-      const question = new Question();
-      question.content = questionText;
-      question.topic = topic;
-      question.status = ProcessingStatus.PENDING;
-      return question;
-    });
+    const questionEntities = await Promise.all(
+      questions.map(async (questionText) => {
+        const question = new Question();
+        question.content = questionText;
+        question.topic = topic;
+        question.status = ProcessingStatus.PENDING;
+        return this.dataSource.getRepository(Question).save(question);
+      })
+    );
 
-    // Save questions
+    // Update topic with questions
     topic.questions = questionEntities;
     topic.status = ProcessingStatus.COMPLETED;
 
-    return topic;
+    // Save and return the updated topic
+    return this.dataSource.getRepository(Topic).save(topic);
   }
 } 

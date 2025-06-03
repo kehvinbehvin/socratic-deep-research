@@ -5,14 +5,17 @@ export class QueueService {
   private sqs: SQS;
   private queueUrls: Map<QueueName, string>;
 
-  constructor() {
+  constructor(
+    endpoint?: string,
+    region?: string,
+    accessKeyId?: string,
+    secretAccessKey?: string
+  ) {
     this.sqs = new SQS({
-      endpoint: process.env.SQS_ENDPOINT || 'http://localhost:9324',
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'dummy',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'dummy'
-      }
+      endpoint,
+      region,
+      accessKeyId,
+      secretAccessKey
     });
     this.queueUrls = new Map();
   }

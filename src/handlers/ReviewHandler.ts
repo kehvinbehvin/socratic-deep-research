@@ -5,7 +5,6 @@ import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
 import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
 import { z } from 'zod';
 
@@ -41,8 +40,8 @@ export class ReviewHandler extends BaseHandler<ReviewQueueInput, Review> {
       queueService,
       dataSource,
       Review,
-      QUEUE_NAMES.REVIEW,
-      QUEUE_NAMES.COMPLETE
+      'REVIEW',
+      'COMPLETE'
     );
     this.openAIService = openAIService;
     this.s3Service = s3Service;

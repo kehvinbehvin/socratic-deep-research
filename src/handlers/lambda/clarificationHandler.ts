@@ -1,17 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Clarification request schema
-const ClarificationRequestSchema = z.object({
-  clarificationId: z.string().uuid(),
-  reflectionId: z.string().uuid(),
-  content: z.string().min(1),
-});
+import { ClarificationQueueSchema } from '../ClarificationHandler';
 
 export const handler = createLambdaHandler({
-  schema: ClarificationRequestSchema,
+  schema: ClarificationQueueSchema,
   handler: async (input, serviceFactory) => {
     const clarificationHandler = serviceFactory.getClarificationHandler();
-    return clarificationHandler.handleRequest(input);
+    return clarificationHandler.handleQueueMessage({ entity: input });
   },
 }); 

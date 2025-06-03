@@ -4,7 +4,6 @@ import { SearchQuery } from '../entities/SearchQuery';
 import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
 import { z } from 'zod';
 
@@ -26,7 +25,7 @@ const SearchQuerySchema = z.object({
 
 type SearchQueryOutput = z.infer<typeof SearchQuerySchema>;
 
-export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueInput, SearchQuery> {
+export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueInput, QueryPreparation> {
   private openAIService: OpenAIService;
 
   constructor(
@@ -37,9 +36,9 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueIn
     super(
       queueService,
       dataSource,
-      SearchQuery,
-      QUEUE_NAMES.QUERY_PREPARATION,
-      QUEUE_NAMES.SEARCH
+      QueryPreparation,
+      'QUERY_PREPARATION',
+      'SEARCH'
     );
     this.openAIService = openAIService;
   }
@@ -50,7 +49,7 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueIn
     return { id, content, clarificationId };
   }
 
-  protected async process(input: QueryPreparationQueueInput): Promise<SearchQuery> {
+  protected async process(input: QueryPreparationQueueInput): Promise<QueryPreparation> {
     const queryPrep = await this.dataSource
       .getRepository(QueryPreparation)
       .findOne({
@@ -81,6 +80,6 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueIn
     searchQuery.reasoning = searchQueryOutput.reasoning;
     searchQuery.status = ProcessingStatus.PENDING;
 
-    return searchQuery;
+    return queryPrep;
   }
 } 

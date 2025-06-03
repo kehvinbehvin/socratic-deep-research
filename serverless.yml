@@ -48,7 +48,6 @@ functions:
       - httpApi:
           path: /api/study
           method: POST
-          cors: true
 
   # Queue processing handlers
   processTopic:
@@ -163,7 +162,6 @@ resources:
 plugins:
   - serverless-offline-sqs
   - serverless-offline
-  - serverless-dotenv-plugin
 
 custom:
   serverless-offline:

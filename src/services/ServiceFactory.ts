@@ -1,193 +1,172 @@
 import { DataSource } from 'typeorm';
 import { QueueService } from './QueueService';
+import { OpenAIService } from './OpenAIService';
+import { SerpApiService } from './SerpApiService';
+import { FireCrawlService } from './FireCrawlService';
+import { S3Service } from './S3Service';
+import { LoggerService } from './LoggerService';
 import { StudyHandler } from '../handlers/StudyHandler';
-import { QuestionHandler } from '../handlers/QuestionHandler';
 import { TopicHandler } from '../handlers/TopicHandler';
+import { QuestionHandler } from '../handlers/QuestionHandler';
 import { ReflectionHandler } from '../handlers/ReflectionHandler';
 import { ClarificationHandler } from '../handlers/ClarificationHandler';
-import { OpenAIService } from './OpenAIService';
 import { QueryPreparationHandler } from '../handlers/QueryPreparationHandler';
-import { SearchHandler } from '../handlers/SeachHandler';
+import { SearchHandler } from '../handlers/SearchHandler';
 import { CrawlHandler } from '../handlers/CrawlHandler';
-import { FireCrawlService } from './FireCrawlService';
 import { ReviewHandler } from '../handlers/ReviewHandler';
-import { SerpApiService } from './SerpApiService';
-import { S3Service } from './S3Service';
 import { CompletedHandler } from '../handlers/CompletedHandler';
-import { LoggerService } from './LoggerService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
-  private dataSource: DataSource;
   private queueService: QueueService;
-  private handlers: Map<string, any>;
-  private fireCrawlService: FireCrawlService | null = null;
-  private s3Service: S3Service | null = null;
+  private dataSource: DataSource;
   private openAIService: OpenAIService;
+  private serpApiService: SerpApiService;
+  private fireCrawlService: FireCrawlService;
+  private s3Service: S3Service;
+  private loggerService: LoggerService;
 
-  private constructor(dataSource: DataSource, queueService: QueueService) {
-    this.dataSource = dataSource;
-    this.queueService = queueService;
-    this.handlers = new Map();
+  constructor() {
+    this.loggerService = LoggerService.getInstance();
+    this.queueService = new QueueService(
+      process.env.QUEUE_ENDPOINT || '',
+      process.env.QUEUE_REGION || '',
+      process.env.QUEUE_ACCESS_KEY_ID || '',
+      process.env.QUEUE_SECRET_ACCESS_KEY || ''
+    );
+    this.dataSource = new DataSource({
+      type: 'postgres',
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      username: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+      synchronize: true,
+      logging: true,
+      entities: ['src/entities/**/*.ts']
+    });
     this.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
+    this.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
+    this.s3Service = new S3Service(
+      process.env.AWS_REGION || 'us-east-1',
+      process.env.S3_BUCKET || 'socratic-learning'
+    );
+    this.fireCrawlService = new FireCrawlService(
+      this.s3Service,
+      this.loggerService
+    );
   }
 
   static async initialize(dataSource: DataSource): Promise<ServiceFactory> {
     if (!ServiceFactory.instance) {
-      const queueService = new QueueService();
-      await queueService.initialize();
-      ServiceFactory.instance = new ServiceFactory(dataSource, queueService);
+      ServiceFactory.instance = new ServiceFactory();
+      await ServiceFactory.instance.queueService.initialize();
     }
     return ServiceFactory.instance;
   }
 
-  getDataSource(): DataSource {
-    return this.dataSource;
+  public getStudyHandler(): StudyHandler {
+    return new StudyHandler(this.queueService, this.dataSource);
   }
 
-  getQueueService(): QueueService {
-    return this.queueService;
-  }
-
-  getOpenAIService(): OpenAIService {
-    return this.openAIService;
-  }
-
-  getTopicHandler(): TopicHandler {
-    const handlerKey = 'topic';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new TopicHandler(this.queueService, this.dataSource, this.getOpenAIService())
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getQuestionHandler(): QuestionHandler {
-    const handlerKey = 'question';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new QuestionHandler(this.queueService, this.dataSource)
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getReflectionHandler(): ReflectionHandler {
-    const handlerKey = 'reflection';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new ReflectionHandler(this.queueService, this.dataSource)
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getClarificationHandler(): ClarificationHandler {
-    const handlerKey = 'clarification';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new ClarificationHandler(this.queueService, this.dataSource, this.getOpenAIService())
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getQueryPreparationHandler(): QueryPreparationHandler {
-    const handlerKey = 'queryPreparation';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new QueryPreparationHandler(
-          this.queueService, 
-          this.dataSource,
-          new SerpApiService(process.env.SERP_API_KEY || '')
-        )
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getSearchHandler(): SearchHandler {
-    const handlerKey = 'search';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new SearchHandler(
-          this.queueService,
-          this.dataSource,
-          this.getFireCrawlService()
-        )
-      );
-    }
-    return this.handlers.get(handlerKey);
-  }
-
-  getS3Service(): S3Service {
-    if (!this.s3Service) {
-      this.s3Service = new S3Service(
-        process.env.AWS_REGION || 'us-east-1',
-        process.env.S3_BUCKET || 'socratic-learning'
-      );
-    }
-    return this.s3Service;
-  }
-
-  getFireCrawlService(): FireCrawlService {
-    if (!this.fireCrawlService) {
-      this.fireCrawlService = new FireCrawlService(
-        this.getS3Service(),
-        LoggerService.getInstance()
-      );
-    }
-    return this.fireCrawlService;
-  }
-
-  getCrawlHandler(): CrawlHandler {
-    return new CrawlHandler(
-      this.getQueueService(),
-      this.getDataSource(),
-      this.getFireCrawlService()
+  public getTopicHandler(): TopicHandler {
+    return new TopicHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService
     );
   }
 
-  getReviewHandler(): ReviewHandler {
-    const handlerKey = 'review';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new ReviewHandler(
-          this.queueService,
-          this.dataSource,
-          this.getOpenAIService()
-        )
-      );
-    }
-    return this.handlers.get(handlerKey);
+  public getQuestionHandler(): QuestionHandler {
+    return new QuestionHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService
+    );
   }
 
-  getStudyHandler(): StudyHandler {
-    const handlerKey = 'study';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(
-        handlerKey,
-        new StudyHandler(this.queueService, this.dataSource)
-      );
-    }
-    return this.handlers.get(handlerKey);
+  public getReflectionHandler(): ReflectionHandler {
+    return new ReflectionHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService
+    );
   }
 
-  getCompletedHandler(): CompletedHandler {
-    const handlerKey = 'completed';
-    if (!this.handlers.has(handlerKey)) {
-      this.handlers.set(handlerKey, new CompletedHandler(this.queueService, this.dataSource, this.getOpenAIService()));
-    }
-    return this.handlers.get(handlerKey);
+  public getClarificationHandler(): ClarificationHandler {
+    return new ClarificationHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService
+    );
   }
 
-  // Add more handler getters as we implement them
+  public getQueryPreparationHandler(): QueryPreparationHandler {
+    return new QueryPreparationHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService
+    );
+  }
+
+  public getSearchHandler(): SearchHandler {
+    return new SearchHandler(
+      this.queueService,
+      this.dataSource,
+      this.serpApiService
+    );
+  }
+
+  public getCrawlHandler(): CrawlHandler {
+    return new CrawlHandler(
+      this.queueService,
+      this.dataSource,
+      this.fireCrawlService,
+      this.s3Service
+    );
+  }
+
+  public getReviewHandler(): ReviewHandler {
+    return new ReviewHandler(
+      this.queueService,
+      this.dataSource,
+      this.openAIService,
+      this.s3Service
+    );
+  }
+
+  public getCompletedHandler(): CompletedHandler {
+    return new CompletedHandler(
+      this.queueService,
+      this.dataSource
+    );
+  }
+
+  public getQueueService(): QueueService {
+    return this.queueService;
+  }
+
+  public getDataSource(): DataSource {
+    return this.dataSource;
+  }
+
+  public getOpenAIService(): OpenAIService {
+    return this.openAIService;
+  }
+
+  public getSerpApiService(): SerpApiService {
+    return this.serpApiService;
+  }
+
+  public getFireCrawlService(): FireCrawlService {
+    return this.fireCrawlService;
+  }
+
+  public getS3Service(): S3Service {
+    return this.s3Service;
+  }
+
+  public getLoggerService(): LoggerService {
+    return this.loggerService;
+  }
 } 

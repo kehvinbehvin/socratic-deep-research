@@ -4,7 +4,6 @@ import { SearchResult } from '../entities/SearchResult';
 import { QueueService } from '../services/QueueService';
 import { SerpApiService } from '../services/SerpApiService';
 import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
 import { z } from 'zod';
 
@@ -30,8 +29,8 @@ export class SearchHandler extends BaseHandler<SearchQueueInput, SearchResult> {
       queueService,
       dataSource,
       SearchResult,
-      QUEUE_NAMES.SEARCH,
-      QUEUE_NAMES.CRAWL
+      'SEARCH',
+      'CRAWL'
     );
     this.serpApiService = serpApiService;
   }

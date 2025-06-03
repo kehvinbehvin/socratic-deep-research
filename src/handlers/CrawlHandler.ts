@@ -5,15 +5,14 @@ import { QueueService } from '../services/QueueService';
 import { FireCrawlService } from '../services/FireCrawlService';
 import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
 import { z } from 'zod';
 
 // Schema for queue messages
 export const CrawlQueueSchema = z.object({
   id: z.string().uuid(),
-  urls: z.array(z.string().url()),
-  searchResultId: z.string().uuid()
+  searchResultId: z.string().uuid(),
+  urls: z.array(z.string())
 });
 
 export type CrawlQueueInput = z.infer<typeof CrawlQueueSchema>;
@@ -32,8 +31,8 @@ export class CrawlHandler extends BaseHandler<CrawlQueueInput, CrawlResult> {
       queueService,
       dataSource,
       CrawlResult,
-      QUEUE_NAMES.CRAWL,
-      QUEUE_NAMES.REVIEW
+      'CRAWL',
+      'REVIEW'
     );
     this.fireCrawlService = fireCrawlService;
     this.s3Service = s3Service;
@@ -41,8 +40,8 @@ export class CrawlHandler extends BaseHandler<CrawlQueueInput, CrawlResult> {
 
   protected async transformQueueMessage(message: any): Promise<CrawlQueueInput> {
     // Extract just the fields we need from the queue message
-    const { id, urls, searchResultId } = message.entity;
-    return { id, urls, searchResultId };
+    const { id, searchResultId, urls } = message.entity;
+    return { id, searchResultId, urls };
   }
 
   protected async process(input: CrawlQueueInput): Promise<CrawlResult> {

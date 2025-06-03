@@ -15,7 +15,7 @@ export type StudyInput = z.infer<typeof StudyRequestSchema>;
 
 export class StudyHandler extends BaseHandler<StudyInput, Topic> {
   constructor(queueService: QueueService, dataSource: DataSource) {
-    super(queueService, dataSource, Topic, undefined, QUEUE_NAMES.TOPIC);
+    super(queueService, dataSource, Topic, undefined, 'TOPIC');
   }
 
   // Public method for handling web requests

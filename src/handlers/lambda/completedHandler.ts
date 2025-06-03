@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Crawl request schema
-const CompletedRequestSchema = z.object({
-  reviewResultId: z.string().uuid(),
-});
+import { CompletedQueueSchema } from '../CompletedHandler';
 
 export const handler = createLambdaHandler({
-  schema: CompletedRequestSchema,
+  schema: CompletedQueueSchema,
   handler: async (input, serviceFactory) => {
     const completedHandler = serviceFactory.getCompletedHandler();
-    return completedHandler.handleRequest(input);
+    return completedHandler.handleQueueMessage({ entity: input });
   },
 }); 

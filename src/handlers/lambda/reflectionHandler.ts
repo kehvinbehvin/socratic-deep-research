@@ -1,18 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Reflection request schema
-const ReflectionRequestSchema = z.object({
-  reflectionId: z.string().uuid(),
-  questionId: z.string().uuid(),
-  topicId: z.string().uuid(),
-  content: z.string().min(1),
-});
+import { ReflectionQueueSchema } from '../ReflectionHandler';
 
 export const handler = createLambdaHandler({
-  schema: ReflectionRequestSchema,
+  schema: ReflectionQueueSchema,
   handler: async (input, serviceFactory) => {
     const reflectionHandler = serviceFactory.getReflectionHandler();
-    return reflectionHandler.handleRequest(input);
+    return reflectionHandler.handleQueueMessage({ entity: input });
   },
 }); 

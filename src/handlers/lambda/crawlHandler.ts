@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-
-// Crawl request schema
-const CrawlRequestSchema = z.object({
-  searchResultId: z.string().uuid(),
-});
+import { CrawlQueueSchema } from '../CrawlHandler';
 
 export const handler = createLambdaHandler({
-  schema: CrawlRequestSchema,
+  schema: CrawlQueueSchema,
   handler: async (input, serviceFactory) => {
     const crawlHandler = serviceFactory.getCrawlHandler();
-    return crawlHandler.handleRequest(input);
+    return crawlHandler.handleQueueMessage({ entity: input });
   },
 }); 

@@ -4,7 +4,6 @@ import { QueryPreparation } from '../entities/QueryPreparation';
 import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
-import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
 import { z } from 'zod';
 
@@ -17,7 +16,7 @@ export const ClarificationQueueSchema = z.object({
 
 export type ClarificationQueueInput = z.infer<typeof ClarificationQueueSchema>;
 
-export class ClarificationHandler extends BaseHandler<ClarificationQueueInput, QueryPreparation> {
+export class ClarificationHandler extends BaseHandler<ClarificationQueueInput, Clarification> {
   private openAIService: OpenAIService;
 
   constructor(
@@ -28,9 +27,9 @@ export class ClarificationHandler extends BaseHandler<ClarificationQueueInput, Q
     super(
       queueService,
       dataSource,
-      QueryPreparation,
-      QUEUE_NAMES.CLARIFICATION,
-      QUEUE_NAMES.QUERY_PREPARATION
+      Clarification,
+      'CLARIFICATION',
+      'QUERY_PREPARATION'
     );
     this.openAIService = openAIService;
   }
@@ -41,7 +40,7 @@ export class ClarificationHandler extends BaseHandler<ClarificationQueueInput, Q
     return { id, content, reflectionId };
   }
 
-  protected async process(input: ClarificationQueueInput): Promise<QueryPreparation> {
+  protected async process(input: ClarificationQueueInput): Promise<Clarification> {
     const clarification = await this.dataSource
       .getRepository(Clarification)
       .findOne({
@@ -63,6 +62,6 @@ export class ClarificationHandler extends BaseHandler<ClarificationQueueInput, Q
     queryPreparation.content = finalInsight;
     queryPreparation.status = ProcessingStatus.PENDING;
 
-    return queryPreparation;
+    return clarification;
   }
 } 
