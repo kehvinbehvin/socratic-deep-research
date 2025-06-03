@@ -24,7 +24,7 @@ export function createLambdaHandler<T>({ schema, handler }: HandlerConfig<T>): A
       logger.info('Services initialized');
 
       // Parse and validate request body
-      console.log(schema);
+      // console.log(schema);
       const body = schema ? schema.parse(event.body ? JSON.parse(event.body) : undefined) : undefined;
 
       // Process the request
