@@ -1,123 +1,85 @@
 import { BaseHandler } from './BaseHandler';
-import { Clarification } from '../entities/Clarification';
 import { Reflection } from '../entities/Reflection';
-import { QueueService, OpenAIService } from '../services';
+import { QueueService } from '../services/QueueService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
-import { z } from 'zod';
+import { ProcessingStatus } from '../entities/BaseEntity';
+import { Clarification } from '../entities/Clarification';
+import { QueryPreparation } from '../entities/QueryPreparation';
+import z from 'zod';
+import { OpenAIService } from '../services/OpenAIService';
 
 interface ClarificationInput {
-  reflectionId: string;
+  clarificationId: string;
+  content: string;
 }
 
-const ClarificationOutputSchema = z.object({
-  clarifyingQuestions: z.array(z.object({
-    question: z.string(),
-    purpose: z.string(),
-    expectedInsights: z.array(z.string())
-  })),
-  learningResources: z.array(z.object({
-    type: z.enum(['book', 'article', 'video', 'exercise', 'other']),
-    title: z.string(),
-    description: z.string(),
-    relevance: z.string()
-  })),
-  practicalApplications: z.array(z.object({
-    scenario: z.string(),
-    steps: z.array(z.string()),
-    learningOutcome: z.string()
-  })),
-  conceptMap: z.array(z.object({
-    concept: z.string(),
-    relatedConcepts: z.array(z.string()),
-    relationship: z.string()
-  }))
+const SearchQuerySchema = z.object({
+  queries: z.array(z.string()),
+  keywords: z.array(z.string()),
+  reasoning: z.string(),
 });
 
-type ClarificationOutput = z.infer<typeof ClarificationOutputSchema>;
+type SearchQueryOutput = z.infer<typeof SearchQuerySchema>;
 
-export class ClarificationHandler extends BaseHandler<ClarificationInput, Clarification> {
+export class ClarificationHandler extends BaseHandler<ClarificationInput, QueryPreparation> {
   private openAIService: OpenAIService;
 
-  constructor(
-    queueService: QueueService,
-    dataSource: DataSource,
-    openAIService: OpenAIService
-  ) {
-    super(
-      queueService,
-      dataSource,
-      Clarification,
-      QUEUE_NAMES.CLARIFICATION,
-      QUEUE_NAMES.QUERY_PREPARATION
-    );
+  constructor(queueService: QueueService, dataSource: DataSource, openAIService: OpenAIService) {
+    super(queueService, dataSource, Clarification, QUEUE_NAMES.CLARIFICATION, QUEUE_NAMES.QUERY_PREPARATION);
     this.openAIService = openAIService;
   }
 
-  protected async process(input: ClarificationInput): Promise<Clarification> {
-    const reflection = await this.dataSource
-      .getRepository(Reflection)
-      .findOne({
-        where: { id: input.reflectionId },
-        relations: ['question', 'question.topic']
-      });
+  // Public method for handling web/API requests
+  public async handleRequest(input: ClarificationInput): Promise<QueryPreparation> {
+    return this.process(input);
+  }
 
-    if (!reflection) {
-      throw new Error(`Reflection not found: ${input.reflectionId}`);
+  // Protected method for internal queue processing
+  protected async process(input: ClarificationInput): Promise<QueryPreparation> {
+    const clarification = await this.dataSource
+      .getRepository(Clarification)
+      .findOne({ where: { id: input.clarificationId } });
+
+    if (!clarification) {
+      throw new Error(`Clarification not found: ${input.clarificationId}`);
     }
 
-    const prompt = `Based on this learning context, provide structured guidance:
+    // Generate search queries using OpenAI
+    const prompt = `Given the following learning context:
+Topic: ${clarification.reflection.question.topic.content}
+Question: ${clarification.reflection.question.content}
+Reflection: ${clarification.reflection.content}
+Clarification: ${clarification.content}
+Clarifying Questions: ${clarification.clarifyingQuestions || 'N/A'}
+Suggestions: ${clarification.suggestions || 'N/A'}
 
-    Topic: "${reflection.question.topic.content}"
-    Question: "${reflection.question.content}"
-    Reflection: "${reflection.content}"
-    Analysis: "${reflection.analysis}"
+Generate 3-5 effective Google search queries that would help find relevant, high-quality information to address the clarifications and gaps identified. For each query:
+1. Make it specific and targeted
+2. Include relevant technical terms
+3. Focus on reliable sources (e.g., academic, professional)
 
-    Create a comprehensive learning plan that includes:
-    1. Clarifying questions to deepen understanding
-    2. Relevant learning resources and materials
-    3. Practical applications and exercises
-    4. A concept map showing relationships between key ideas`;
+Also provide a list of key terms/concepts that are crucial for understanding this topic.
 
-    const output = await this.openAIService.generateStructuredOutput(
+Format the response as:
+{
+  "queries": ["query1", "query2", ...],
+  "keywords": ["keyword1", "keyword2", ...],
+  "reasoning": "Explanation of why these queries and keywords were chosen"
+}`;
+
+    const searchQueryOutput = await this.openAIService.generateStructuredOutput(
       prompt,
-      ClarificationOutputSchema
-    );
+      SearchQuerySchema
+    ) as SearchQueryOutput;
 
-    // Format clarifying questions
-    const formattedQuestions = output.clarifyingQuestions
-      .map((q, i) => [
-        `${i + 1}. ${q.question}`,
-        `   Purpose: ${q.purpose}`,
-        `   Expected Insights:`,
-        ...q.expectedInsights.map(insight => `   - ${insight}`)
-      ].join('\n'))
-      .join('\n\n');
+    // Create query preparation entity
+    const queryPreparation = new QueryPreparation();
+    queryPreparation.clarification = clarification;
+    queryPreparation.searchQueries = searchQueryOutput.queries.join('\n');
+    queryPreparation.keywords = searchQueryOutput.keywords.join(',');
+    queryPreparation.status = ProcessingStatus.PENDING;
 
-    // Format suggestions
-    const formattedSuggestions = [
-      'Learning Resources:',
-      ...output.learningResources.map(r => 
-        `- [${r.type.toUpperCase()}] ${r.title}\n  ${r.description}\n  Relevance: ${r.relevance}`
-      ),
-      '\nPractical Applications:',
-      ...output.practicalApplications.map(p => [
-        `- Scenario: ${p.scenario}`,
-        '  Steps:',
-        ...p.steps.map(step => `  - ${step}`),
-        `  Outcome: ${p.learningOutcome}`
-      ].join('\n')),
-      '\nConcept Relationships:',
-      ...output.conceptMap.map(c =>
-        `- ${c.concept} relates to: ${c.relatedConcepts.join(', ')}\n  ${c.relationship}`
-      )
-    ].join('\n');
-
-    const clarification = new Clarification();
-    clarification.reflection = reflection;
-    clarification.clarifyingQuestions = formattedQuestions;
-    clarification.suggestions = formattedSuggestions;
-
-    return clarification;
+    return queryPreparation;
   }
 } 

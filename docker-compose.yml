@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
@@ -41,37 +40,10 @@ services:
     volumes:
       - ./queue-config/elasticmq.conf:/opt/elasticmq.conf:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9324"]
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:9324/?Action=ListQueues"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - backend
-
-  app:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=myapp
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - QUEUE_ENDPOINT=http://elasticmq:9324
-      - QUEUE_REGION=elasticmq
-      - QUEUE_ACCESS_KEY_ID=root
-      - QUEUE_SECRET_ACCESS_KEY=root
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - .:/app
-      - /app/node_modules
-    depends_on:
-      postgres:
-        condition: service_healthy
-      elasticmq:
-        condition: service_healthy
     networks:
       - backend
 

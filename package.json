@@ -1,19 +1,31 @@
 {
   "name": "relocate-v5",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI-driven Socratic learning platform",
+  "main": "dist/app.js",
   "scripts": {
     "build": "tsc",
-    "start": "serverless offline start",
-    "services:up": "docker compose up",
+    "watch": "tsc -w",
+    "dev:build": "tsc -w",
+    "dev:start": "serverless offline start --noPrependStageInUrl --httpPort 3000",
+    "dev": "concurrently \"npm run dev:build\" \"npm run dev:start\"",
+    "services:up": "docker compose up -d",
     "services:down": "docker compose down",
     "services:clean": "docker compose down -v",
-    "dev": "npm run services:up -d && npm run build && npm run start",
-    "dev:clean": "npm run services:clean && npm run services:up -d && npm run build && npm run start",
-    "watch": "tsc -w"
+    "services:logs": "docker compose logs -f",
+    "test:local": "npm run services:clean && npm run services:up && sleep 5 && npm run dev",
+    "test:topic": "curl -X POST http://localhost:3000/api/topics -H 'Content-Type: application/json' -d '{\"content\": \"Understanding TypeScript Generics\"}'",
+    "test:question": "curl -X POST http://localhost:3000/api/questions -H 'Content-Type: application/json' -d '{\"topicId\": \"TOPIC_ID\", \"content\": \"How do conditional types work in TypeScript?\"}'",
+    "test:reflection": "curl -X POST http://localhost:3000/api/reflections -H 'Content-Type: application/json' -d '{\"questionId\": \"QUESTION_ID\", \"content\": \"Conditional types allow us to create type definitions that depend on other types...\"}'",
+    "logs": "tail -f logs/combined.log | pino-pretty",
+    "metrics": "tail -f logs/metrics.log | pino-pretty"
   },
-  "keywords": [],
+  "keywords": [
+    "learning",
+    "ai",
+    "socratic",
+    "typescript"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -21,6 +33,8 @@
     "@types/aws-lambda": "^8.10.134",
     "@types/node": "^20.11.24",
     "@types/pg": "^8.11.2",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.0",
     "serverless": "^4.4.10",
     "serverless-offline": "^14.3.4",
     "serverless-offline-sqs": "^8.0.0",
@@ -28,6 +42,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.821.0",
     "@aws-sdk/client-sqs": "^3.525.0",
     "@langchain/core": "^0.3.57",
     "@langchain/openai": "^0.5.11",

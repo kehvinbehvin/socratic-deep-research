@@ -3,77 +3,107 @@ import { join } from 'path';
 import { SystemMonitor } from '../utils/monitor';
 import { LoggerService } from '../services/LoggerService';
 import { MonitoringService } from '../services/MonitoringService';
+import { ServiceFactory } from '../services/ServiceFactory';
+import { initializeDatabase } from '../utils/database';
 import { QUEUE_NAMES } from '../config/queues';
+import { z } from 'zod';
 
 const app = express();
 const logger = LoggerService.getInstance();
 const monitor = new SystemMonitor();
 const monitoring = MonitoringService.getInstance();
 
-// Set up EJS as the view engine
-app.set('view engine', 'ejs');
-app.set('views', join(__dirname, 'views'));
-
-// Serve static files
+// Middleware
+app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
+app.set('view engine', 'ejs');
 
-// Routes
-app.get('/', (req, res) => {
-  const summary = monitoring.getMetricsSummary();
-  const health = {
-    status: 'unknown',
-    queues: {} as Record<string, any>
-  };
-
-  for (const queueName of Object.values(QUEUE_NAMES)) {
-    health.queues[queueName] = {
-      length: summary[`queue_length`]?.avg || 0,
-      processingTime: summary[`${queueName}_processing_duration_ms`]?.avg || 0,
-      successRate: calculateSuccessRate(queueName, summary),
-      errorCount: summary[`error_count`]?.count || 0
-    };
-  }
-
-  res.render('dashboard', { health });
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-app.get('/queue/:name', (req, res) => {
-  const queueName = req.params.name;
-  const metrics = {
-    messages: monitoring.getMetrics(`queue_length`).filter(m => m.tags?.queue === queueName),
-    processing: monitoring.getMetrics(`${queueName}_processing_duration_ms`),
-    success: monitoring.getMetrics(`${queueName}_success`),
-    errors: monitoring.getMetrics('error_count').filter(m => m.tags?.category === queueName)
-  };
+// Metrics dashboard
+app.get('/metrics', (req, res) => {
+  const now = Date.now();
+  const startTime = now - 24 * 60 * 60 * 1000; // 24 hours ago
+  
+  // Get metrics for all queues
+  const queueMetrics = Object.values(QUEUE_NAMES).reduce((acc: Record<string, any>, queueName) => {
+    acc[`queue_${queueName}`] = monitoring.getMetrics(`queue_length`, startTime);
+    acc[`processing_${queueName}`] = monitoring.getMetrics(`${queueName}_processing_duration_ms`, startTime);
+    return acc;
+  }, {});
 
-  res.render('queue', { queueName, metrics });
-});
-
-app.get('/api/metrics', (req, res) => {
-  const summary = monitoring.getMetricsSummary();
-  res.json(summary);
-});
-
-app.get('/api/queue/:name', (req, res) => {
-  const queueName = req.params.name;
-  const metrics = {
-    messages: monitoring.getMetrics(`queue_length`).filter(m => m.tags?.queue === queueName),
-    processing: monitoring.getMetrics(`${queueName}_processing_duration_ms`),
-    success: monitoring.getMetrics(`${queueName}_success`),
-    errors: monitoring.getMetrics('error_count').filter(m => m.tags?.category === queueName)
-  };
-  res.json(metrics);
-});
-
-function calculateSuccessRate(queueName: string, summary: Record<string, any>): number {
-  const successCount = summary[`${queueName}_success`]?.count || 0;
-  const errorCount = summary[`error_count`]?.count || 0;
-  const total = successCount + errorCount;
-  return total > 0 ? (successCount / total) * 100 : 100;
-}
-
-export function startWebServer(port: number = 3000): void {
-  app.listen(port, () => {
-    logger.info(`Metrics web interface listening on port ${port}`);
+  res.render('metrics', {
+    metrics: queueMetrics,
+    health: monitor.getSystemHealth()
   });
+});
+
+// Topic request schema
+const TopicRequestSchema = z.object({
+  content: z.string().min(1),
+});
+
+export async function startWebServer(port: number = 3000) {
+  try {
+    // Initialize database connection
+    const dataSource = await initializeDatabase();
+    logger.info('Database initialized for web server');
+
+    // Initialize services
+    const serviceFactory = await ServiceFactory.initialize(dataSource);
+    logger.info('Services initialized for web server');
+
+    // API Routes
+    app.post('/api/topics', async (req, res) => {
+      try {
+        const validatedData = TopicRequestSchema.parse(req.body);
+        const studyHandler = serviceFactory.getStudyHandler();
+        const result = await studyHandler.handleRequest(validatedData);
+        res.json(result);
+      } catch (error) {
+        logger.error('Error processing topic request', {
+          error: error instanceof Error ? error.stack : String(error),
+        });
+        res.status(error instanceof z.ZodError ? 400 : 500).json({
+          error: error instanceof Error ? error.message : 'Internal server error',
+        });
+      }
+    });
+
+    // Start server
+    app.listen(port, () => {
+      logger.info(`Web server listening on port ${port}`);
+    });
+
+    // Monitor system health
+    setInterval(() => {
+      monitor.getSystemHealth();
+    }, 60000); // Every minute
+
+    setInterval(() => {
+      monitor.getQueueMetrics();
+    }, 300000); // Every 5 minutes
+
+    // Handle graceful shutdown
+    process.on('SIGTERM', async () => {
+      logger.info('Received SIGTERM signal');
+      await dataSource.destroy();
+      process.exit(0);
+    });
+
+    process.on('SIGINT', async () => {
+      logger.info('Received SIGINT signal');
+      await dataSource.destroy();
+      process.exit(0);
+    });
+
+  } catch (error) {
+    logger.error('Web server startup error', {
+      error: error instanceof Error ? error.stack : String(error),
+    });
+    throw error;
+  }
 } 

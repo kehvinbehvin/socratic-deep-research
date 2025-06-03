@@ -1,90 +1,50 @@
 import { BaseHandler } from './BaseHandler';
-import { Question } from '../entities/Question';
-import { Topic } from '../entities/Topic';
-import { QueueService, OpenAIService } from '../services';
+import { Clarification } from '../entities/Clarification';
+import { QueueService } from '../services/QueueService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
-import { z } from 'zod';
+import { ProcessingStatus } from '../entities/BaseEntity';
+import { Reflection } from '../entities/Reflection';
+import { Question } from '../entities/Question';
 
 interface QuestionInput {
+  questionId: string;
   topicId: string;
   content: string;
 }
 
-const FollowUpQuestionsSchema = z.object({
-  questions: z.array(z.object({
-    question: z.string(),
-    reasoning: z.string(),
-    concepts: z.array(z.string())
-  })),
-  summary: z.string(),
-  suggestedApproach: z.string()
-});
-
-type FollowUpQuestion = z.infer<typeof FollowUpQuestionsSchema>['questions'][number];
-type FollowUpQuestions = z.infer<typeof FollowUpQuestionsSchema>;
-
-export class QuestionHandler extends BaseHandler<QuestionInput, Question> {
-  private openAIService: OpenAIService;
-
-  constructor(
-    queueService: QueueService,
-    dataSource: DataSource,
-    openAIService: OpenAIService
-  ) {
-    super(
-      queueService,
-      dataSource,
-      Question,
-      QUEUE_NAMES.QUESTION,
-      QUEUE_NAMES.REFLECTION
-    );
-    this.openAIService = openAIService;
+export class QuestionHandler extends BaseHandler<QuestionInput, Reflection> {
+  constructor(queueService: QueueService, dataSource: DataSource) {
+    super(queueService, dataSource, Reflection, QUEUE_NAMES.QUESTION, QUEUE_NAMES.REFLECTION);
   }
 
-  protected async process(input: QuestionInput): Promise<Question> {
-    // Get the topic
-    const topic = await this.dataSource
-      .getRepository(Topic)
-      .findOne({ where: { id: input.topicId } });
+  // Public method for handling web/API requests
+  public async handleRequest(input: QuestionInput): Promise<Reflection> {
+    return this.process(input);
+  }
 
-    if (!topic) {
-      throw new Error(`Topic not found: ${input.topicId}`);
+  // Protected method for internal queue processing
+  protected async process(input: QuestionInput): Promise<Reflection> {
+    const question = await this.dataSource
+      .getRepository(Question)
+      .findOne({ where: { id: input.questionId } });
+
+    if (!question) {
+      throw new Error(`Question not found: ${input.questionId}`);
     }
 
-    // Generate follow-up questions using OpenAI with structured output
-    const prompt = `Given the topic "${topic.content}" and the question "${input.content}",
-      generate 2-3 follow-up questions that would help deepen understanding through the Socratic method.
-      
-      For each question:
-      1. The question should be probing and encourage critical thinking
-      2. Provide reasoning for why this question is important
-      3. List key concepts that the question explores
-      
-      Also provide:
-      1. A brief summary of how these questions relate to the main topic
-      2. A suggested approach for exploring these questions`;
+    const reflection = new Reflection();
+    reflection.content = input.content;
+    reflection.question = question;
+    reflection.status = ProcessingStatus.PENDING;
 
-    const followUpQuestions = await this.openAIService.generateStructuredOutput(
-      prompt,
-      FollowUpQuestionsSchema
-    );
+    // TODO: Implement reflection processing logic
+    // This will involve:
+    // 1. Using Langgraph to generate a reflection based on the question and the topic
 
-    // Format the questions for storage
-    const formattedQuestions = followUpQuestions.questions
-      .map((q: FollowUpQuestion, i: number) => 
-        `${i + 1}. ${q.question}\nReasoning: ${q.reasoning}\nConcepts: ${q.concepts.join(', ')}`
-      )
-      .join('\n\n');
+    // Save to database
+    const savedReflection = await this.repository.save(reflection);
 
-    const fullOutput = `${formattedQuestions}\n\nSummary: ${followUpQuestions.summary}\n\nApproach: ${followUpQuestions.suggestedApproach}`;
-
-    // Create and save the question
-    const question = new Question();
-    question.topic = topic;
-    question.content = input.content;
-    question.followUpQuestions = fullOutput;
-
-    return question;
+    return savedReflection;
   }
 } 

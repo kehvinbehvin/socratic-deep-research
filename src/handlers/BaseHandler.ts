@@ -4,6 +4,7 @@ import { ProcessingStatus, BaseEntity } from '../entities/BaseEntity';
 import { DataSource, Repository, EntityTarget, ObjectLiteral } from 'typeorm';
 import { LoggerService } from '../services/LoggerService';
 import { MonitoringService } from '../services/MonitoringService';
+import process from 'process';
 
 export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends BaseEntity> {
   protected queueService: QueueService;
@@ -142,4 +143,21 @@ export abstract class BaseHandler<TInput extends ObjectLiteral, TOutput extends 
   }
 
   protected abstract process(input: TInput): Promise<TOutput>;
+
+  // Public method for handling web/API requests
+  public async handleRequest(input: TInput): Promise<TOutput> {
+    // Process the request
+    const result = await this.process(input);
+
+    // Save to database
+    const savedEntity = await this.repository.save(result);
+
+    // For API requests, we should queue the entity for background processing
+    await this.queueService.sendMessage(this.inputQueue, {
+      id: savedEntity.id,
+      ...input
+    });
+
+    return savedEntity;
+  }
 } 
