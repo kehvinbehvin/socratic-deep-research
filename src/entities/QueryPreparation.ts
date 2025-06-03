@@ -1,19 +1,19 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { Clarification, SearchResult } from '../types';
+import { Clarification } from './Clarification';
+import { SearchResult } from './SearchResult';
 
 @Entity()
 export class QueryPreparation extends BaseEntity {
-  @Column('jsonb')
-  queries: {
-    query: string;
-    reasoning: string;
-    priority: number;
-  }[];
+  @Column('text')
+  searchQueries: string;
 
-  @ManyToOne('Clarification', 'queryPreparations')
+  @Column('text')
+  keywords: string;
+
+  @ManyToOne(() => Clarification, clarification => clarification.queryPreparations)
   clarification: Clarification;
 
-  @OneToMany('SearchResult', 'queryPreparation')
+  @OneToMany(() => SearchResult, searchResult => searchResult.queryPreparation)
   searchResults: SearchResult[];
 } 

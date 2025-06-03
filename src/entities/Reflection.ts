@@ -1,19 +1,19 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { Question, Clarification } from '../types';
+import { Question } from './Question';
+import { Clarification } from './Clarification';
 
 @Entity()
 export class Reflection extends BaseEntity {
-  @Column('jsonb')
-  reflections: {
-    question: string;
-    reflection: string;
-    confidence: number;
-  }[];
+  @Column('text')
+  content: string;
 
-  @ManyToOne('Question', 'reflections')
+  @Column('text')
+  analysis: string;
+
+  @ManyToOne(() => Question, question => question.reflections)
   question: Question;
 
-  @OneToMany('Clarification', 'reflection')
+  @OneToMany(() => Clarification, clarification => clarification.reflection)
   clarifications: Clarification[];
 } 

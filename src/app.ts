@@ -1,44 +1,80 @@
 import { initializeDatabase } from './utils/database';
 import { ServiceFactory } from './services/ServiceFactory';
+import { LoggerService } from './services/LoggerService';
+import { SystemMonitor } from './utils/monitor';
+import { startWebServer } from './web/server';
+
+const logger = LoggerService.getInstance();
+const monitor = new SystemMonitor();
+
+// Monitor system health periodically
+function startHealthMonitoring(): void {
+  setInterval(() => {
+    monitor.getSystemHealth();
+  }, 60000); // Every minute
+
+  setInterval(() => {
+    monitor.getQueueMetrics();
+  }, 300000); // Every 5 minutes
+}
 
 async function startApplication() {
   try {
     // Initialize database connection
     const dataSource = await initializeDatabase();
-    console.log('Database initialized');
+    logger.info('Database initialized');
 
     // Initialize services
     const serviceFactory = await ServiceFactory.initialize(dataSource);
-    console.log('Services initialized');
+    logger.info('Services initialized');
 
     // Start handlers
     const topicHandler = serviceFactory.getTopicHandler();
     topicHandler.start().catch(error => {
-      console.error('Topic handler error:', error);
+      logger.error('Topic handler error', { error: error instanceof Error ? error.stack : String(error) });
       process.exit(1);
     });
 
-    console.log('Handlers started');
+    logger.info('Handlers started');
+
+    // Start web server
+    startWebServer(3000);
+    logger.info('Web server started on port 3000');
+
+    // Start monitoring
+    startHealthMonitoring();
+    logger.info('Monitoring started');
 
     // Handle graceful shutdown
     process.on('SIGTERM', async () => {
-      console.log('Received SIGTERM signal');
+      logger.info('Received SIGTERM signal');
       await dataSource.destroy();
       process.exit(0);
     });
 
     process.on('SIGINT', async () => {
-      console.log('Received SIGINT signal');
+      logger.info('Received SIGINT signal');
       await dataSource.destroy();
       process.exit(0);
     });
+
+    // Log startup complete
+    logger.info('Application startup complete', {
+      nodeEnv: process.env.NODE_ENV || 'development',
+      logLevel: process.env.LOG_LEVEL || 'info',
+      monitoringLevel: process.env.MONITORING_LEVEL || 'info'
+    });
   } catch (error) {
-    console.error('Application startup error:', error);
+    logger.error('Application startup error', { 
+      error: error instanceof Error ? error.stack : String(error)
+    });
     process.exit(1);
   }
 }
 
 startApplication().catch(error => {
-  console.error('Fatal error:', error);
+  logger.error('Fatal error', {
+    error: error instanceof Error ? error.stack : String(error)
+  });
   process.exit(1);
 }); 

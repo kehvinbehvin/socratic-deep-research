@@ -17,52 +17,22 @@ provider:
     QUEUE_REGION: ${env:QUEUE_REGION, 'elasticmq'}
     QUEUE_ACCESS_KEY_ID: ${env:QUEUE_ACCESS_KEY_ID, 'root'}
     QUEUE_SECRET_ACCESS_KEY: ${env:QUEUE_SECRET_ACCESS_KEY, 'root'}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
             - sqs:*
-          Resource: 
-            - !GetAtt MessageQueue.Arn
-            - !GetAtt MessageQueueDLQ.Arn
+          Resource: "*"
 
 functions:
-  hello:
-    handler: dist/handler.hello
+  app:
+    handler: dist/app.startApplication
     events:
       - httpApi:
-          path: /hello
-          method: get
-
-  testQueue:
-    handler: dist/handler.testQueue
-    events:
-      - httpApi:
-          path: /test-queue
-          method: post
-  
-  processMessage:
-    handler: dist/handler.processMessage
-    events:
-      - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:queue:message-queue
-          batchSize: 1
-
-resources:
-  Resources:
-    MessageQueueDLQ:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: message-queue-dead-letters
-    
-    MessageQueue:
-      Type: AWS::SQS::Queue
-      Properties:
-        QueueName: message-queue
-        RedrivePolicy:
-          deadLetterTargetArn: !GetAtt MessageQueueDLQ.Arn
-          maxReceiveCount: 3
+          path: /{proxy+}
+          method: any
 
 plugins:
   - serverless-offline-sqs

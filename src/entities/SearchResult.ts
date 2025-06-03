@@ -1,20 +1,22 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { QueryPreparation, CrawlResult } from '../types';
+import { QueryPreparation } from './QueryPreparation';
+
+interface SearchResultItem {
+  url: string;
+  title: string;
+  snippet: string;
+  rank: number;
+}
 
 @Entity()
 export class SearchResult extends BaseEntity {
   @Column('jsonb')
-  results: {
-    url: string;
-    title: string;
-    snippet: string;
-    rank: number;
-  }[];
+  results: SearchResultItem[];
 
-  @ManyToOne('QueryPreparation', 'searchResults')
+  @Column('text')
+  analysis: string;
+
+  @ManyToOne(() => QueryPreparation, queryPreparation => queryPreparation.searchResults)
   queryPreparation: QueryPreparation;
-
-  @OneToMany('CrawlResult', 'searchResult')
-  crawlResults: CrawlResult[];
 } 

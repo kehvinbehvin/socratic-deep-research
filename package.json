@@ -29,8 +29,23 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.525.0",
+    "@langchain/core": "^0.3.57",
+    "@langchain/openai": "^0.5.11",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.2",
+    "@types/pino": "^7.0.5",
+    "@types/winston": "^2.4.4",
+    "axios": "^1.9.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "langchain": "^0.3.27",
+    "openai": "^5.0.2",
     "pg": "^8.11.3",
+    "pino": "^9.7.0",
+    "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.2.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "winston": "^3.11.0",
+    "zod": "^3.22.4"
   }
 }

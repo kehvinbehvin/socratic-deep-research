@@ -1,25 +1,19 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { Reflection } from './Reflection';
-import type { QueryPreparation } from '../types';
+import { Reflection } from './Reflection';
+import { QueryPreparation } from './QueryPreparation';
 
 @Entity()
 export class Clarification extends BaseEntity {
-  @Column('simple-array')
-  gaps: string[];
-
-  @Column('simple-array')
-  assumptions: string[];
-
-  @Column('simple-array')
-  newConcepts: string[];
+  @Column('text')
+  clarifyingQuestions: string;
 
   @Column('text')
-  analysis: string;
+  suggestions: string;
 
-  @ManyToOne('Reflection', 'clarifications')
+  @ManyToOne(() => Reflection, reflection => reflection.clarifications)
   reflection: Reflection;
 
-  @OneToMany('QueryPreparation', 'clarification')
+  @OneToMany(() => QueryPreparation, queryPreparation => queryPreparation.clarification)
   queryPreparations: QueryPreparation[];
 } 
