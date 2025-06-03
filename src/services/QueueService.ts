@@ -1,8 +1,8 @@
-import { SQS } from 'aws-sdk';
+import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, GetQueueUrlCommand, CreateQueueCommand, ChangeMessageVisibilityCommand } from '@aws-sdk/client-sqs';
 import { QueueName, QUEUE_CONFIGS } from '../config/queues';
 
 export class QueueService {
-  private sqs: SQS;
+  private sqs: SQSClient;
   private queueUrls: Map<QueueName, string>;
 
   constructor(
@@ -11,11 +11,13 @@ export class QueueService {
     accessKeyId?: string,
     secretAccessKey?: string
   ) {
-    this.sqs = new SQS({
+    this.sqs = new SQSClient({
       endpoint,
       region,
-      accessKeyId,
-      secretAccessKey
+      credentials: {
+        accessKeyId: accessKeyId || 'root',
+        secretAccessKey: secretAccessKey || 'root'
+      }
     });
     this.queueUrls = new Map();
   }
@@ -29,17 +31,19 @@ export class QueueService {
 
   private async getOrCreateQueue(queueName: QueueName): Promise<string> {
     try {
-      const { QueueUrl } = await this.sqs.getQueueUrl({ QueueName: queueName }).promise();
+      const command = new GetQueueUrlCommand({ QueueName: queueName });
+      const { QueueUrl } = await this.sqs.send(command);
       return QueueUrl!;
     } catch (error) {
-      const { QueueUrl } = await this.sqs.createQueue({
+      const command = new CreateQueueCommand({
         QueueName: queueName,
         Attributes: {
           VisibilityTimeout: QUEUE_CONFIGS[queueName].visibilityTimeout.toString(),
           MessageRetentionPeriod: '1209600', // 14 days
           ReceiveMessageWaitTimeSeconds: '20' // Enable long polling
         }
-      }).promise();
+      });
+      const { QueueUrl } = await this.sqs.send(command);
       return QueueUrl!;
     }
   }
@@ -50,11 +54,12 @@ export class QueueService {
       throw new Error(`Queue URL not found for queue: ${queueName}`);
     }
 
-    const { MessageId } = await this.sqs.sendMessage({
+    const command = new SendMessageCommand({
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(message)
-    }).promise();
+    });
 
+    const { MessageId } = await this.sqs.send(command);
     return MessageId!;
   }
 
@@ -68,11 +73,13 @@ export class QueueService {
       throw new Error(`Queue URL not found for queue: ${queueName}`);
     }
 
-    const { Messages } = await this.sqs.receiveMessage({
+    const command = new ReceiveMessageCommand({
       QueueUrl: queueUrl,
       MaxNumberOfMessages: maxMessages,
       WaitTimeSeconds: 20 // Enable long polling
-    }).promise();
+    });
+
+    const { Messages } = await this.sqs.send(command);
 
     if (!Messages) {
       return [];
@@ -91,10 +98,12 @@ export class QueueService {
       throw new Error(`Queue URL not found for queue: ${queueName}`);
     }
 
-    await this.sqs.deleteMessage({
+    const command = new DeleteMessageCommand({
       QueueUrl: queueUrl,
       ReceiptHandle: receiptHandle
-    }).promise();
+    });
+
+    await this.sqs.send(command);
   }
 
   async changeMessageVisibility(
@@ -107,10 +116,12 @@ export class QueueService {
       throw new Error(`Queue URL not found for queue: ${queueName}`);
     }
 
-    await this.sqs.changeMessageVisibility({
+    const command = new ChangeMessageVisibilityCommand({
       QueueUrl: queueUrl,
       ReceiptHandle: receiptHandle,
       VisibilityTimeout: visibilityTimeout
-    }).promise();
+    });
+
+    await this.sqs.send(command);
   }
 } 

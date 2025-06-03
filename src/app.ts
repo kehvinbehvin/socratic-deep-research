@@ -6,7 +6,7 @@ const logger = LoggerService.getInstance();
 // Start the web application
 async function startApplication() {
   try {
-    await startWebServer(3000);
+    await startWebServer(3003);
     logger.info('Application startup complete', {
       nodeEnv: process.env.NODE_ENV || 'development',
       logLevel: process.env.LOG_LEVEL || 'info'

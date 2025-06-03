@@ -5,12 +5,13 @@ import {
   Reflection,
   Clarification,
   QueryPreparation,
+  SearchQuery,
   SearchResult,
   CrawlResult,
   Review
 } from '../entities';
 
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.POSTGRES_HOST || 'localhost',
   port: parseInt(process.env.POSTGRES_PORT || '5432'),
@@ -25,9 +26,25 @@ export const AppDataSource = new DataSource({
     Reflection,
     Clarification,
     QueryPreparation,
+    SearchQuery,
     SearchResult,
     CrawlResult,
     Review
   ],
   migrations: ['src/migrations/*.ts'],
-}); 
+});
+
+export async function initializeDatabase(): Promise<DataSource> {
+  try {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+      console.log('Database connection initialized');
+    }
+    return AppDataSource;
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
+}
+
+export { AppDataSource }; 

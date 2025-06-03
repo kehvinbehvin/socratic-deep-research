@@ -4,6 +4,7 @@ export * from './Question';
 export * from './Reflection';
 export * from './Clarification';
 export * from './QueryPreparation';
+export * from './SearchQuery';
 export * from './SearchResult';
 export * from './CrawlResult';
 export * from './Review'; 

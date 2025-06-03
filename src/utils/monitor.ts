@@ -52,7 +52,7 @@ export class SystemMonitor {
   /**
    * Get system health status
    */
-  getSystemHealth(): void {
+  getSystemHealth(): { status: string; queueHealth: Record<string, string> } {
     const summary = this.monitoring.getMetricsSummary();
     const health = {
       status: this.calculateSystemStatus(summary),
@@ -64,6 +64,7 @@ export class SystemMonitor {
     }
 
     this.logger.info('System Health Status', health);
+    return health;
   }
 
   private calculateSuccessRate(queueName: string, summary: Record<string, any>): number {

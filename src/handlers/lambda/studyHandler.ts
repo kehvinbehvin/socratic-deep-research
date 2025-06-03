@@ -10,6 +10,6 @@ export const handler = createLambdaHandler({
   schema: StudyRequestSchema,
   handler: async (input, serviceFactory) => {
     const studyHandler = serviceFactory.getStudyHandler();
-    return studyHandler.handleRequest(input);
+    return studyHandler.handleRequest(input || { content: '' });
   },
 }); 

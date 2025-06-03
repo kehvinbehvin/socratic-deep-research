@@ -15,6 +15,7 @@ import { SearchHandler } from '../handlers/SearchHandler';
 import { CrawlHandler } from '../handlers/CrawlHandler';
 import { ReviewHandler } from '../handlers/ReviewHandler';
 import { CompletedHandler } from '../handlers/CompletedHandler';
+import { StudyService } from './StudiesService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -25,42 +26,34 @@ export class ServiceFactory {
   private fireCrawlService: FireCrawlService;
   private s3Service: S3Service;
   private loggerService: LoggerService;
-
+  private studyService: StudyService;
+  
   constructor() {
     this.loggerService = LoggerService.getInstance();
     this.queueService = new QueueService(
-      process.env.QUEUE_ENDPOINT || '',
-      process.env.QUEUE_REGION || '',
-      process.env.QUEUE_ACCESS_KEY_ID || '',
-      process.env.QUEUE_SECRET_ACCESS_KEY || ''
-    );
-    this.dataSource = new DataSource({
-      type: 'postgres',
-      host: process.env.POSTGRES_HOST,
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
-      username: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
-      database: process.env.POSTGRES_DB,
-      synchronize: true,
-      logging: true,
-      entities: ['src/entities/**/*.ts']
-    });
-    this.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
-    this.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
-    this.s3Service = new S3Service(
-      process.env.AWS_REGION || 'us-east-1',
-      process.env.S3_BUCKET || 'socratic-learning'
-    );
-    this.fireCrawlService = new FireCrawlService(
-      this.s3Service,
-      this.loggerService
+      process.env.QUEUE_ENDPOINT || 'http://localhost:9324',
+      process.env.QUEUE_REGION || 'us-east-1',
+      process.env.QUEUE_ACCESS_KEY_ID || 'root',
+      process.env.QUEUE_SECRET_ACCESS_KEY || 'root'
     );
   }
 
   static async initialize(dataSource: DataSource): Promise<ServiceFactory> {
     if (!ServiceFactory.instance) {
       ServiceFactory.instance = new ServiceFactory();
+      ServiceFactory.instance.dataSource = dataSource;
       await ServiceFactory.instance.queueService.initialize();
+      
+      ServiceFactory.instance.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
+      ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
+      ServiceFactory.instance.s3Service = new S3Service(
+        process.env.AWS_REGION || 'us-east-1',
+        process.env.S3_BUCKET || 'socratic-learning'
+      );
+      ServiceFactory.instance.fireCrawlService = new FireCrawlService(
+        ServiceFactory.instance.s3Service,
+        ServiceFactory.instance.loggerService
+      );
     }
     return ServiceFactory.instance;
   }
@@ -168,5 +161,9 @@ export class ServiceFactory {
 
   public getLoggerService(): LoggerService {
     return this.loggerService;
+  }
+
+  public getStudyService(): StudyService {
+    return this.studyService;
   }
 } 

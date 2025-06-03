@@ -1,12 +1,17 @@
 import express from 'express';
 import { join } from 'path';
+import { WebSocket, WebSocketServer } from 'ws';
 import { SystemMonitor } from '../utils/monitor';
 import { LoggerService } from '../services/LoggerService';
 import { MonitoringService } from '../services/MonitoringService';
 import { ServiceFactory } from '../services/ServiceFactory';
-import { initializeDatabase } from '../utils/database';
+import { initializeDatabase } from '../config/database';
 import { QUEUE_NAMES } from '../config/queues';
 import { z } from 'zod';
+import { Topic } from '../entities/Topic';
+import { ProcessingStatus } from '../entities/BaseEntity';
+import { Server } from 'http';
+import expressLayouts from 'express-ejs-layouts';
 
 const app = express();
 const logger = LoggerService.getInstance();
@@ -16,7 +21,78 @@ const monitoring = MonitoringService.getInstance();
 // Middleware
 app.use(express.json());
 app.use(express.static(join(__dirname, 'public')));
+
+// View engine setup
+app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use(expressLayouts);
+app.set('layout', 'layout');
+app.set('layout extractScripts', true);
+app.set('layout extractStyles', true);
+
+// WebSocket setup
+const server = new Server(app);
+const wss = new WebSocketServer({ server });
+
+// Store connected clients
+const clients = new Set<WebSocket>();
+
+wss.on('connection', (ws) => {
+  clients.add(ws);
+  
+  ws.on('close', () => {
+    clients.delete(ws);
+  });
+});
+
+// Broadcast updates to all connected clients
+function broadcastUpdate(topic: Topic) {
+  const message = JSON.stringify(topic);
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
+// Routes
+app.get('/', (req, res) => {
+  res.render('index');
+});
+
+app.get('/api/topics', async (req, res) => {
+  try {
+    const serviceFactory = await ServiceFactory.initialize(req.app.locals.dataSource);
+    const topics = await serviceFactory.getDataSource()
+      .getRepository(Topic)
+      .find({
+        order: { createdAt: 'DESC' },
+        take: 10
+      });
+    res.json(topics);
+  } catch (error) {
+    logger.error('Failed to fetch topics', { error });
+    res.status(500).json({ error: 'Failed to fetch topics' });
+  }
+});
+
+app.post('/api/topics', async (req, res) => {
+  try {
+    const serviceFactory = await ServiceFactory.initialize(req.app.locals.dataSource);
+    const studyHandler = serviceFactory.getStudyHandler();
+    const result = await studyHandler.handleRequest(req.body);
+    
+    // Broadcast the new topic to all connected clients
+    broadcastUpdate(result);
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Failed to create topic', { error });
+    res.status(error instanceof z.ZodError ? 400 : 500).json({
+      error: error instanceof Error ? error.message : 'Failed to create topic'
+    });
+  }
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -35,46 +111,29 @@ app.get('/metrics', (req, res) => {
     return acc;
   }, {});
 
+  // Get system health and log it
+  const systemHealth = monitor.getSystemHealth();
+  logger.info('System Health Status', systemHealth);
+
   res.render('metrics', {
     metrics: queueMetrics,
-    health: monitor.getSystemHealth()
+    health: systemHealth
   });
 });
 
-// Topic request schema
-const TopicRequestSchema = z.object({
-  content: z.string().min(1),
-});
-
-export async function startWebServer(port: number = 3000) {
+export async function startWebServer(port: number = 5000) {
   try {
     // Initialize database connection
     const dataSource = await initializeDatabase();
+    app.locals.dataSource = dataSource;
     logger.info('Database initialized for web server');
 
     // Initialize services
     const serviceFactory = await ServiceFactory.initialize(dataSource);
     logger.info('Services initialized for web server');
 
-    // API Routes
-    app.post('/api/topics', async (req, res) => {
-      try {
-        const validatedData = TopicRequestSchema.parse(req.body);
-        const studyHandler = serviceFactory.getStudyHandler();
-        const result = await studyHandler.handleRequest(validatedData);
-        res.json(result);
-      } catch (error) {
-        logger.error('Error processing topic request', {
-          error: error instanceof Error ? error.stack : String(error),
-        });
-        res.status(error instanceof z.ZodError ? 400 : 500).json({
-          error: error instanceof Error ? error.message : 'Internal server error',
-        });
-      }
-    });
-
     // Start server
-    app.listen(port, () => {
+    server.listen(port, () => {
       logger.info(`Web server listening on port ${port}`);
     });
 
