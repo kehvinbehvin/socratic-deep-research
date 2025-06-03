@@ -8,10 +8,7 @@ import { nullable } from 'zod';
 export class SearchResult extends BaseEntity {
   @Column('text')
   url: string;
-
+  
   @ManyToOne(() => Topic, topic => topic.searchResults)
-  topic: Topic;
-
-  @OneToOne(() => Review, review => review.searchResult, { nullable: true })
-  review: Review;
+  topic: Topic;  
 } 

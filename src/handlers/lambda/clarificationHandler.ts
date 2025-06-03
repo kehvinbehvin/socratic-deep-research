@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-import { ClarificationQueueSchema } from '../ClarificationHandler';
+import { GenericQueueDTO } from '../../types/dtos';
+import { ServiceFactory } from '../../services/ServiceFactory';
+import { ClarificationStageData } from '../../types/dtos';
 
 export const handler = createLambdaHandler({
-  schema: ClarificationQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input: GenericQueueDTO<ClarificationStageData>, serviceFactory: ServiceFactory) => {
     const clarificationHandler = serviceFactory.getClarificationHandler();
-    return clarificationHandler.handleQueueMessage({ entity: input });
+    return clarificationHandler.handleQueueMessage(input);
   },
 }); 

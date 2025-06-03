@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-import { SearchQueueSchema } from '../SearchHandler';
+import { GenericQueueDTO } from '../../types/dtos';
+import { ServiceFactory } from '../../services/ServiceFactory';
+import { SearchResultStageData } from '../../types/dtos';
 
 export const handler = createLambdaHandler({
-  schema: SearchQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input: GenericQueueDTO<SearchResultStageData>, serviceFactory: ServiceFactory) => {
     const searchHandler = serviceFactory.getSearchHandler();
-    return searchHandler.handleQueueMessage({ entity: input });
+    return searchHandler.handleQueueMessage(input);
   },
 }); 

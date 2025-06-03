@@ -773,3 +773,15 @@
 {"level":"info","message":"Services initialized","timestamp":"2025-06-03T19:58:46.461Z"}
 {"level":"info","message":"Database initialized","timestamp":"2025-06-03T19:59:52.845Z"}
 {"level":"info","message":"Services initialized","timestamp":"2025-06-03T19:59:52.901Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T20:02:18.064Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T20:02:18.127Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T20:03:59.156Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T20:03:59.215Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T20:03:59.695Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T20:03:59.744Z"}
+{"error":"ZodError: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"received\": \"undefined\",\n    \"path\": [],\n    \"message\": \"Required\"\n  }\n]\n    at get error (/Users/kevin/Documents/Kevin/relocate-v5/node_modules/zod/dist/cjs/v3/types.js:45:31)\n    at ZodObject.parse (/Users/kevin/Documents/Kevin/relocate-v5/node_modules/zod/dist/cjs/v3/types.js:120:22)\n    at /Users/kevin/Documents/Kevin/relocate-v5/dist/utils/lambda.js:21:42\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MessagePort.<anonymous> (file:///Users/kevin/Documents/Kevin/relocate-v5/node_modules/serverless-offline/src/lambda/handler-runner/worker-thread-runner/workerThreadHelper.js:24:14)","level":"error","message":"Lambda handler error","timestamp":"2025-06-03T20:03:59.745Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T20:06:53.206Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T20:06:53.272Z"}
+{"level":"info","message":"Database initialized","timestamp":"2025-06-03T20:06:53.713Z"}
+{"level":"info","message":"Services initialized","timestamp":"2025-06-03T20:06:53.771Z"}
+{"error":"ZodError: [\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"received\": \"undefined\",\n    \"path\": [],\n    \"message\": \"Required\"\n  }\n]\n    at get error (/Users/kevin/Documents/Kevin/relocate-v5/node_modules/zod/dist/cjs/v3/types.js:45:31)\n    at ZodObject.parse (/Users/kevin/Documents/Kevin/relocate-v5/node_modules/zod/dist/cjs/v3/types.js:120:22)\n    at /Users/kevin/Documents/Kevin/relocate-v5/dist/utils/lambda.js:21:42\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async MessagePort.<anonymous> (file:///Users/kevin/Documents/Kevin/relocate-v5/node_modules/serverless-offline/src/lambda/handler-runner/worker-thread-runner/workerThreadHelper.js:24:14)","level":"error","message":"Lambda handler error","timestamp":"2025-06-03T20:06:53.773Z"}

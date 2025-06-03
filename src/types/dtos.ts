@@ -20,45 +20,49 @@ interface StageIds {
 }
 
 // Generic queue DTO
-interface GenericQueueDTO<T = unknown> {
+export interface GenericQueueDTO<T = unknown> {
   core: QueueDTOCore;
   previousStages: StageIds;
   currentStage: T;
 }
 
 // Stage-specific data interfaces
-interface TopicStageData {
+export interface TopicStageData {
   title: string;
   description: string;
 }
 
-interface QuestionStageData {
+export interface QuestionStageData {
   questions: string[];
 }
 
-interface ReflectionStageData {
+export interface ReflectionStageData {
   reflections: string[];
 }
 
-interface ClarificationStageData {
+export interface ClarificationStageData {
   clarifications: string[];
 }
 
-interface QueryPreparationStageData {
+export interface QueryPreparationStageData {
   queries: string[];
   keywords: string[];
 }
 
-interface SearchResultStageData {
+export interface SearchResultStageData {
   searchResults: string[];
 }
 
-interface CrawlResultStageData {
+export interface CrawlResultStageData {
   crawlResults: string[];
 }
 
-interface ReviewStageData {
+export interface ReviewStageData {
   reviews: string[];
+}
+
+export interface CompleteStageData {
+  complete: string[];
 }
 
 export type QueueTopicDTO = GenericQueueDTO<TopicStageData>;
@@ -69,3 +73,4 @@ export type QueueQueryPreparationDTO = GenericQueueDTO<QueryPreparationStageData
 export type QueueSearchResultDTO = GenericQueueDTO<SearchResultStageData>;
 export type QueueCrawlResultDTO = GenericQueueDTO<CrawlResultStageData>;
 export type QueueReviewDTO = GenericQueueDTO<ReviewStageData>;
+export type QueueCompleteDTO = GenericQueueDTO<CompleteStageData>;

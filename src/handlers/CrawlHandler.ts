@@ -1,23 +1,13 @@
-import { BaseHandler } from './BaseHandler';
-import { SearchResult } from '../entities/SearchResult';
 import { CrawlResult } from '../entities/CrawlResult';
 import { QueueService } from '../services/QueueService';
 import { FireCrawlService } from '../services/FireCrawlService';
 import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
-import { ProcessingStatus } from '../entities/BaseEntity';
-import { z } from 'zod';
+import { CrawlResultStageData, GenericQueueDTO, ReviewStageData } from '../types/dtos';
+import { QueueHandler } from './QueueHandler';
+import { Review } from '../entities/Review';
 
-// Schema for queue messages
-export const CrawlQueueSchema = z.object({
-  id: z.string().uuid(),
-  searchResultId: z.string().uuid(),
-  urls: z.array(z.string())
-});
-
-export type CrawlQueueInput = z.infer<typeof CrawlQueueSchema>;
-
-export class CrawlHandler extends BaseHandler<CrawlQueueInput, CrawlResult> {
+export class CrawlHandler extends QueueHandler<CrawlResultStageData, ReviewStageData, Review> {
   private fireCrawlService: FireCrawlService;
   private s3Service: S3Service;
 
@@ -38,55 +28,27 @@ export class CrawlHandler extends BaseHandler<CrawlQueueInput, CrawlResult> {
     this.s3Service = s3Service;
   }
 
-  protected async transformQueueMessage(message: any): Promise<CrawlQueueInput> {
+  protected async transformQueueMessage(entities: Review[], prevMessage: GenericQueueDTO<CrawlResultStageData>): Promise<GenericQueueDTO<ReviewStageData>> {
     // Extract just the fields we need from the queue message
-    const { id, searchResultId, urls } = message.entity;
-    return { id, searchResultId, urls };
+    return {
+      core: {
+        ...prevMessage.core,
+        updatedAt: new Date()
+      },
+      previousStages: {
+        ...prevMessage.previousStages,
+        crawlResults: entities.map(entity => entity.id)
+      },
+      currentStage: {
+        reviews: entities.map(entity => entity.id)
+      }
+    }
   }
 
-  protected async process(input: CrawlQueueInput): Promise<CrawlResult> {
-    const searchResult = await this.dataSource
-      .getRepository(SearchResult)
-      .findOne({
-        where: { id: input.id },
-        relations: ['searchQuery']
-      });
+  protected async process(input: GenericQueueDTO<CrawlResultStageData>): Promise<Review[]> {
+    // TODO: Integrate with llm to score relevance of the crawl results
+    // TODO: Integrate with text spliiter to chunk text and store in vector db
 
-    if (!searchResult) {
-      throw new Error(`Search result not found: ${input.id}`);
-    }
-
-    // TODO: Implement Firecrawl and S3 integration
-    // const crawlResults = [];
-    // for (const result of searchResult.results) {
-    //   try {
-    //     const content = await this.fireCrawlService.crawl(result.url);
-    //     const s3Key = `crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.html`;
-    //     await this.s3Service.uploadFile(s3Key, content);
-    //     crawlResults.push({ url: result.url, s3Key, title: result.title, success: true });
-    //   } catch (error) {
-    //     crawlResults.push({
-    //       url: result.url,
-    //       error: error instanceof Error ? error.message : 'Unknown error',
-    //       success: false
-    //     });
-    //   }
-    // }
-
-    // Create stub results for testing
-    const crawlResults = searchResult.results.map(result => ({
-      url: result.url,
-      title: result.title,
-      s3Key: `stub-crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.html`,
-      success: true
-    }));
-
-    // Create crawl result entity
-    const crawlResult = new CrawlResult();
-    crawlResult.searchResult = searchResult;
-    crawlResult.results = crawlResults;
-    crawlResult.status = ProcessingStatus.PENDING;
-
-    return crawlResult;
+    return [] as Review[];
   }
 } 

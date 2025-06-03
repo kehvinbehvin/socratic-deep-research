@@ -5,7 +5,10 @@ import { Topic } from './Topic';
 @Entity()
 export class QueryPreparation extends BaseEntity {
   @Column('text')
-  content: string;
+  query: string;
+
+  @Column('text')
+  keyword: string;
 
   @ManyToOne(() => Topic, topic => topic.queryPreparations)
   topic: Topic;

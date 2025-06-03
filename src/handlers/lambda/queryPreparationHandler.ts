@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-import { QueryPreparationQueueSchema } from '../QueryPreparationHandler';
+import { GenericQueueDTO } from '../../types/dtos';
+import { ServiceFactory } from '../../services/ServiceFactory';
+import { QueryPreparationStageData } from '../../types/dtos';
 
 export const handler = createLambdaHandler({
-  schema: QueryPreparationQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input: GenericQueueDTO<QueryPreparationStageData>, serviceFactory: ServiceFactory) => {
     const queryPreparationHandler = serviceFactory.getQueryPreparationHandler();
-    return queryPreparationHandler.handleQueueMessage({ entity: input });
+    return queryPreparationHandler.handleQueueMessage(input);
   },
 }); 

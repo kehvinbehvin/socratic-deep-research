@@ -1,4 +1,4 @@
-import { BaseHandler } from './BaseHandler';
+import { BaseHandler } from './QueueHandler';
 import { Review } from '../entities/Review';
 import { Topic } from '../entities/Topic';
 import { QueueService } from '../services/QueueService';

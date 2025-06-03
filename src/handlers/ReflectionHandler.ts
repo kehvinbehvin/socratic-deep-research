@@ -1,32 +1,12 @@
-import { BaseHandler } from './BaseHandler';
 import { Reflection } from '../entities/Reflection';
 import { Clarification } from '../entities/Clarification';
 import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
-import { ProcessingStatus } from '../entities/BaseEntity';
-import { z } from 'zod';
+import { QueueHandler } from './QueueHandler';
+import { ClarificationStageData, GenericQueueDTO, ReflectionStageData } from '../types/dtos';
 
-// Schema for API requests
-export const CreateReflectionSchema = z.object({
-  questionId: z.string().uuid(),
-  content: z.string().min(1)
-});
-
-// Schema for queue messages
-export const ReflectionQueueSchema = z.object({
-  id: z.string().uuid(),
-  content: z.string(),
-  questionId: z.string().uuid()
-});
-
-export type CreateReflectionInput = z.infer<typeof CreateReflectionSchema>;
-export type ReflectionQueueInput = z.infer<typeof ReflectionQueueSchema>;
-
-// Union type for all possible inputs
-export type ReflectionInput = CreateReflectionInput | ReflectionQueueInput;
-
-export class ReflectionHandler extends BaseHandler<ReflectionQueueInput, Reflection> {
+export class ReflectionHandler extends QueueHandler<ReflectionStageData, ClarificationStageData, Clarification> {
   private openAIService: OpenAIService;
 
   constructor(
@@ -44,14 +24,25 @@ export class ReflectionHandler extends BaseHandler<ReflectionQueueInput, Reflect
     this.openAIService = openAIService;
   }
 
-  protected async transformQueueMessage(message: any): Promise<ReflectionQueueInput> {
+  protected async transformQueueMessage(entities: Clarification[], prevMessage: GenericQueueDTO<ReflectionStageData>): Promise<GenericQueueDTO<ClarificationStageData>> {
     // Extract just the fields we need from the queue message
-    const { id, content, questionId } = message.entity;
-    return { id, content, questionId };
+    return {
+      core: {
+        ...prevMessage.core,
+        updatedAt: new Date()
+      },
+      previousStages: {
+        ...prevMessage.previousStages,
+        reflections: entities.map(entity => entity.id)
+      },
+      currentStage: {
+        clarifications: entities.map(entity => entity.content)
+      }
+    }
   }
 
-  protected async process(input: ReflectionQueueInput): Promise<Reflection> {
+  protected async process(input: GenericQueueDTO<ReflectionStageData>): Promise<Clarification[]> {
     // Implementation here...
-    return {} as Reflection; // Placeholder
+    return [] as Clarification[]; // Placeholder
   }
 } 

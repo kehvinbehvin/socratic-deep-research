@@ -1,31 +1,12 @@
-import { BaseHandler } from './BaseHandler';
 import { QueryPreparation } from '../entities/QueryPreparation';
-import { SearchQuery } from '../entities/SearchQuery';
 import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
-import { ProcessingStatus } from '../entities/BaseEntity';
-import { z } from 'zod';
+import { GenericQueueDTO, QueryPreparationStageData, SearchResultStageData } from '../types/dtos';
+import { QueueHandler } from './QueueHandler';
+import { SearchResult } from '../entities/SearchResult';
 
-// Schema for queue messages
-export const QueryPreparationQueueSchema = z.object({
-  id: z.string().uuid(),
-  content: z.string(),
-  clarificationId: z.string().uuid()
-});
-
-export type QueryPreparationQueueInput = z.infer<typeof QueryPreparationQueueSchema>;
-
-// Schema for OpenAI response
-const SearchQuerySchema = z.object({
-  queries: z.array(z.string()),
-  keywords: z.array(z.string()),
-  reasoning: z.string()
-});
-
-type SearchQueryOutput = z.infer<typeof SearchQuerySchema>;
-
-export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueInput, QueryPreparation> {
+export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageData, SearchResultStageData, SearchResult> {
   private openAIService: OpenAIService;
 
   constructor(
@@ -43,43 +24,29 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationQueueIn
     this.openAIService = openAIService;
   }
 
-  protected async transformQueueMessage(message: any): Promise<QueryPreparationQueueInput> {
+  protected async transformQueueMessage(entities: SearchResult[], prevMessage: GenericQueueDTO<QueryPreparationStageData>): Promise<GenericQueueDTO<SearchResultStageData>> {
     // Extract just the fields we need from the queue message
-    const { id, content, clarificationId } = message.entity;
-    return { id, content, clarificationId };
+    return {
+      core: {
+        ...prevMessage.core,
+        updatedAt: new Date()
+      },
+      previousStages: {
+        ...prevMessage.previousStages,
+        queryPreparations: entities.map(entity => entity.id)
+      },
+      currentStage: {
+        searchResults: entities.map(entity => entity.id)
+      }
+    }
   }
 
-  protected async process(input: QueryPreparationQueueInput): Promise<QueryPreparation> {
-    const queryPrep = await this.dataSource
-      .getRepository(QueryPreparation)
-      .findOne({
-        where: { id: input.id },
-        relations: ['clarification', 'clarification.reflection', 'clarification.reflection.question', 'clarification.reflection.question.topic']
-      });
-
-    if (!queryPrep) {
-      throw new Error(`Query preparation not found: ${input.id}`);
-    }
-
+  protected async process(input: GenericQueueDTO<QueryPreparationStageData>): Promise<SearchResult[]> {
     // TODO: Implement OpenAI integration
-    // const searchQueryOutput = await this.openAIService.generateStructuredOutput(prompt, SearchQuerySchema);
-    const searchQueryOutput = {
-      queries: [
-        `Stub search query 1 for: ${queryPrep.content}`,
-        `Stub search query 2 for: ${queryPrep.content}`
-      ],
-      keywords: ['stub', 'keywords'],
-      reasoning: 'Stub reasoning for testing'
-    };
+    // Itegrate with serpapi to use queries and keywords to search the web
+    // Integrate with llm to score reliability of the search results
+    // Integrate with llm to score trustworthiness of the search results
 
-    // Create search query entity
-    const searchQuery = new SearchQuery();
-    searchQuery.queryPreparation = queryPrep;
-    searchQuery.queries = searchQueryOutput.queries;
-    searchQuery.keywords = searchQueryOutput.keywords;
-    searchQuery.reasoning = searchQueryOutput.reasoning;
-    searchQuery.status = ProcessingStatus.PENDING;
-
-    return queryPrep;
+    return [] as SearchResult[];
   }
 } 

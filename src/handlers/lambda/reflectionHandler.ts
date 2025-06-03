@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-import { ReflectionQueueSchema } from '../ReflectionHandler';
+import { GenericQueueDTO } from '../../types/dtos';
+import { ServiceFactory } from '../../services/ServiceFactory';
+import { ReflectionStageData } from '../../types/dtos';
 
 export const handler = createLambdaHandler({
-  schema: ReflectionQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input: GenericQueueDTO<ReflectionStageData>, serviceFactory: ServiceFactory) => {
     const reflectionHandler = serviceFactory.getReflectionHandler();
-    return reflectionHandler.handleQueueMessage({ entity: input });
+    return reflectionHandler.handleQueueMessage(input);
   },
 }); 

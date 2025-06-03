@@ -4,8 +4,9 @@ import { Question } from './Question';
 import { Reflection } from './Reflection';
 import { Clarification } from './Clarification';
 import { QueryPreparation } from './QueryPreparation';
-import { SearchQuery } from './SearchQuery';
 import { SearchResult } from './SearchResult';
+import { CrawlResult } from './CrawlResult';
+import { Review } from './Review';
 
 @Entity()
 export class Topic extends BaseEntity {
@@ -24,9 +25,12 @@ export class Topic extends BaseEntity {
   @OneToMany(() => QueryPreparation, queryPreparation => queryPreparation.topic)
   queryPreparations: QueryPreparation[];
 
-  @OneToMany(() => SearchQuery, searchQuery => searchQuery.topic)
-  searchQueries: SearchQuery[];
-
   @OneToMany(() => SearchResult, searchResult => searchResult.topic)
   searchResults: SearchResult[];
+
+  @OneToMany(() => CrawlResult, crawlResult => crawlResult.topic)
+  crawlResults: CrawlResult[];
+
+  @OneToMany(() => Review, review => review.topic)
+  reviews: Review[];
 } 

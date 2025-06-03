@@ -1,11 +1,10 @@
-import { z } from 'zod';
-import { createLambdaHandler } from '../../utils/lambda';
-import { CompletedQueueSchema } from '../CompletedHandler';
+import { ServiceFactory } from "../../services/ServiceFactory";
+import { createLambdaHandler } from "../../utils/lambda";
+
 
 export const handler = createLambdaHandler({
-  schema: CompletedQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input , serviceFactory: ServiceFactory) => {
     const completedHandler = serviceFactory.getCompletedHandler();
-    return completedHandler.handleQueueMessage({ entity: input });
+    return completedHandler.handleQueueMessage(input);
   },
 }); 

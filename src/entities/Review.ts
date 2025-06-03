@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Topic } from './Topic';
-import { SearchResult } from './SearchResult';
+import { CrawlResult } from './CrawlResult';
 
 @Entity()
 export class Review extends BaseEntity {
@@ -9,14 +9,11 @@ export class Review extends BaseEntity {
   chunkId: string; // chunk id from vector db
 
   @Column('int32')
-  relevance: number;
+  relevance: number; 
 
-  @Column('int32')
-  reliability: number;
-
-  @ManyToOne(() => Topic, topic => topic.searchResults)
+  @ManyToOne(() => Topic, topic => topic.crawlResults)
   topic: Topic;
 
-  @OneToOne(() => SearchResult, searchResult => searchResult.review)
-  searchResult: SearchResult;
+  @OneToOne(() => CrawlResult, crawlResult => crawlResult.review)
+  crawlResult: CrawlResult;
 } 

@@ -101,7 +101,7 @@ export function Metrics() {
         <h3 className="text-lg font-medium text-gray-900">
           System Health
         </h3>
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {queueNames.map(queueName => {
             const queueHealth = metricsData.systemHealth.queueHealth[queueName] || 'unhealthy';
             return (
@@ -122,7 +122,7 @@ export function Metrics() {
               </div>
             );
           })}
-        </div>
+          </div>
       </div>
 
       {/* Queue Metrics */}

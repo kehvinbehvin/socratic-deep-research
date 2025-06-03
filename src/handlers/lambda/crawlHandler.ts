@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
-import { CrawlQueueSchema } from '../CrawlHandler';
+import { CrawlResultStageData } from '../../types/dtos';
+import { GenericQueueDTO } from '../../types/dtos';
+import { ServiceFactory } from '../../services/ServiceFactory';
 
 export const handler = createLambdaHandler({
-  schema: CrawlQueueSchema,
-  handler: async (input, serviceFactory) => {
+  handler: async (input: GenericQueueDTO<CrawlResultStageData>, serviceFactory: ServiceFactory) => {
     const crawlHandler = serviceFactory.getCrawlHandler();
-    return crawlHandler.handleQueueMessage({ entity: input });
+    return crawlHandler.handleQueueMessage(input);
   },
 }); 
