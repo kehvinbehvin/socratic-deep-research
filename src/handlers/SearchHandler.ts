@@ -1,79 +1,81 @@
 import { BaseHandler } from './BaseHandler';
-import { CrawlResult } from '../entities/CrawlResult';
+import { SearchQuery } from '../entities/SearchQuery';
 import { SearchResult } from '../entities/SearchResult';
 import { QueueService } from '../services/QueueService';
-import { FireCrawlService } from '../services/FireCrawlService';
+import { SerpApiService } from '../services/SerpApiService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
-// import type { S3Link } from '../entities/CrawlResult';
+import { z } from 'zod';
 
-interface SearchInput {
-  searchResultId: string;
-}
+// Schema for queue messages
+export const SearchQueueSchema = z.object({
+  id: z.string().uuid(),
+  queries: z.array(z.string()),
+  keywords: z.array(z.string()),
+  queryPreparationId: z.string().uuid()
+});
 
-export class SearchHandler extends BaseHandler<SearchInput, CrawlResult> {
-  private fireCrawlService: FireCrawlService;
+export type SearchQueueInput = z.infer<typeof SearchQueueSchema>;
+
+export class SearchHandler extends BaseHandler<SearchQueueInput, SearchResult> {
+  private serpApiService: SerpApiService;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    fireCrawlService: FireCrawlService
+    serpApiService: SerpApiService
   ) {
     super(
       queueService,
       dataSource,
-      CrawlResult,
+      SearchResult,
       QUEUE_NAMES.SEARCH,
       QUEUE_NAMES.CRAWL
     );
-    this.fireCrawlService = fireCrawlService;
+    this.serpApiService = serpApiService;
   }
 
-  protected async process(input: SearchInput): Promise<CrawlResult> {
-    // Get the search result
-    const searchResult = await this.dataSource
-      .getRepository(SearchResult)
+  protected async transformQueueMessage(message: any): Promise<SearchQueueInput> {
+    // Extract just the fields we need from the queue message
+    const { id, queries, keywords, queryPreparationId } = message.entity;
+    return { id, queries, keywords, queryPreparationId };
+  }
+
+  protected async process(input: SearchQueueInput): Promise<SearchResult> {
+    const searchQuery = await this.dataSource
+      .getRepository(SearchQuery)
       .findOne({
-        where: { id: input.searchResultId }
+        where: { id: input.id },
+        relations: ['queryPreparation']
       });
 
-    if (!searchResult) {
-      throw new Error(`Search result not found: ${input.searchResultId}`);
+    if (!searchQuery) {
+      throw new Error(`Search query not found: ${input.id}`);
     }
 
-    // Crawl each URL and store results
-    const s3Links = [];
-    for (const result of searchResult.results) {
-      try {
-        const crawlResult = await this.fireCrawlService.crawl(result.url);
-        s3Links.push({
-          url: result.url,
-          s3Key: `crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.json`,
-          status: 'completed'
-        });
-      } catch (error) {
-        this.logger.error('Failed to crawl URL', {
-          url: result.url,
-          error: error instanceof Error ? error.stack : String(error)
-        });
-        s3Links.push({
-          url: result.url,
-          s3Key: '',
-          status: 'failed'
-        });
-      }
-    }
+    // TODO: Implement SERP API integration
+    // const allResults = [];
+    // for (const query of searchQuery.queries) {
+    //   const enhancedQuery = `${query} ${searchQuery.keywords.slice(0, 3).join(' ')}`;
+    //   const results = await this.serpApiService.search(enhancedQuery, 5);
+    //   allResults.push(...results);
+    // }
 
-    // Create crawl result entity
-    const crawlResult = new CrawlResult();
-    crawlResult.searchResult = searchResult;
-    // crawlResult.s3Links = s3Links as S3Link[];
-    crawlResult.s3Links = [];
-    crawlResult.status = ProcessingStatus.PENDING;
+    // Create stub results for testing
+    const allResults = searchQuery.queries.map((query, index) => ({
+      url: `https://example.com/result-${index + 1}`,
+      title: `Stub Result ${index + 1} for: ${query}`,
+      snippet: `This is a stub search result for the query: ${query}`,
+      rank: index + 1
+    }));
 
-    const savedCrawlResult = await this.repository.save(crawlResult);
+    // Create search result entity
+    const searchResult = new SearchResult();
+    searchResult.searchQuery = searchQuery;
+    searchResult.results = allResults;
+    searchResult.status = ProcessingStatus.PENDING;
 
-    return savedCrawlResult;
+    return searchResult;
   }
 } 

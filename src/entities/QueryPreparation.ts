@@ -1,19 +1,19 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
-import { BaseEntity } from './BaseEntity';
+import { BaseEntity, ProcessingStatus } from './BaseEntity';
 import { Clarification } from './Clarification';
-import { SearchResult } from './SearchResult';
+import { SearchQuery } from './SearchQuery';
 
 @Entity()
 export class QueryPreparation extends BaseEntity {
   @Column('text')
-  searchQueries: string;
-
-  @Column('text')
-  keywords: string;
+  content: string;
 
   @ManyToOne(() => Clarification, clarification => clarification.queryPreparations)
   clarification: Clarification;
 
-  @OneToMany(() => SearchResult, searchResult => searchResult.queryPreparation)
-  searchResults: SearchResult[];
+  @Column('uuid')
+  clarificationId: string;
+
+  @OneToMany(() => SearchQuery, searchQuery => searchQuery.queryPreparation)
+  searchQueries: SearchQuery[];
 } 

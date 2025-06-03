@@ -1,24 +1,32 @@
 import { BaseHandler } from './BaseHandler';
-import { CrawlResult } from '../entities/CrawlResult';
 import { SearchResult } from '../entities/SearchResult';
+import { CrawlResult } from '../entities/CrawlResult';
 import { QueueService } from '../services/QueueService';
 import { FireCrawlService } from '../services/FireCrawlService';
+import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
 import { ProcessingStatus } from '../entities/BaseEntity';
-// import type { S3Link } from '../entities/CrawlResult';
+import { z } from 'zod';
 
-interface CrawlInput {
-  searchResultId: string;
-}
+// Schema for queue messages
+export const CrawlQueueSchema = z.object({
+  id: z.string().uuid(),
+  urls: z.array(z.string().url()),
+  searchResultId: z.string().uuid()
+});
 
-export class CrawlHandler extends BaseHandler<CrawlInput, CrawlResult> {
+export type CrawlQueueInput = z.infer<typeof CrawlQueueSchema>;
+
+export class CrawlHandler extends BaseHandler<CrawlQueueInput, CrawlResult> {
   private fireCrawlService: FireCrawlService;
+  private s3Service: S3Service;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    fireCrawlService: FireCrawlService
+    fireCrawlService: FireCrawlService,
+    s3Service: S3Service
   ) {
     super(
       queueService,
@@ -28,53 +36,58 @@ export class CrawlHandler extends BaseHandler<CrawlInput, CrawlResult> {
       QUEUE_NAMES.REVIEW
     );
     this.fireCrawlService = fireCrawlService;
+    this.s3Service = s3Service;
   }
 
-  protected async process(input: CrawlInput): Promise<CrawlResult> {
-    // Get the search result
+  protected async transformQueueMessage(message: any): Promise<CrawlQueueInput> {
+    // Extract just the fields we need from the queue message
+    const { id, urls, searchResultId } = message.entity;
+    return { id, urls, searchResultId };
+  }
+
+  protected async process(input: CrawlQueueInput): Promise<CrawlResult> {
     const searchResult = await this.dataSource
       .getRepository(SearchResult)
       .findOne({
-        where: { id: input.searchResultId }
+        where: { id: input.id },
+        relations: ['searchQuery']
       });
 
     if (!searchResult) {
-      throw new Error(`Search result not found: ${input.searchResultId}`);
+      throw new Error(`Search result not found: ${input.id}`);
     }
 
-    // TODO: Implement crawl integration with firecrawl service properly
-    // // Crawl each URL and store results
-    // const s3Links = [];
+    // TODO: Implement Firecrawl and S3 integration
+    // const crawlResults = [];
     // for (const result of searchResult.results) {
     //   try {
-    //     const crawlResult = await this.fireCrawlService.crawl(result.url);
-    //     s3Links.push({
-    //       url: result.url,
-    //       s3Key: `crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.json`,
-    //       status: 'completed'
-    //     });
+    //     const content = await this.fireCrawlService.crawl(result.url);
+    //     const s3Key = `crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.html`;
+    //     await this.s3Service.uploadFile(s3Key, content);
+    //     crawlResults.push({ url: result.url, s3Key, title: result.title, success: true });
     //   } catch (error) {
-    //     this.logger.error('Failed to crawl URL', {
+    //     crawlResults.push({
     //       url: result.url,
-    //       error: error instanceof Error ? error.stack : String(error)
-    //     });
-    //     s3Links.push({
-    //       url: result.url,
-    //       s3Key: '',
-    //       status: 'failed'
+    //       error: error instanceof Error ? error.message : 'Unknown error',
+    //       success: false
     //     });
     //   }
     // }
 
+    // Create stub results for testing
+    const crawlResults = searchResult.results.map(result => ({
+      url: result.url,
+      title: result.title,
+      s3Key: `stub-crawls/${searchResult.id}/${Buffer.from(result.url).toString('base64')}.html`,
+      success: true
+    }));
+
     // Create crawl result entity
     const crawlResult = new CrawlResult();
     crawlResult.searchResult = searchResult;
-    // crawlResult.s3Links = s3Links as S3Link[];
-    crawlResult.s3Links = [];
+    crawlResult.results = crawlResults;
     crawlResult.status = ProcessingStatus.PENDING;
 
-    const savedCrawlResult = await this.repository.save(crawlResult);
-
-    return savedCrawlResult;
+    return crawlResult;
   }
 } 

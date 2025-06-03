@@ -1,6 +1,7 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import { QueryPreparation } from './QueryPreparation';
+import { SearchQuery } from './SearchQuery';
+import { CrawlResult } from './CrawlResult';
 
 interface SearchResultItem {
   url: string;
@@ -14,9 +15,12 @@ export class SearchResult extends BaseEntity {
   @Column('jsonb')
   results: SearchResultItem[];
 
-  @Column('text')
-  analysis: string;
+  @ManyToOne(() => SearchQuery, searchQuery => searchQuery.searchResults)
+  searchQuery: SearchQuery;
 
-  @ManyToOne(() => QueryPreparation, queryPreparation => queryPreparation.searchResults)
-  queryPreparation: QueryPreparation;
+  @Column('uuid')
+  searchQueryId: string;
+
+  @OneToMany(() => CrawlResult, crawlResult => crawlResult.searchResult)
+  crawlResults: CrawlResult[];
 } 

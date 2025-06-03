@@ -1,29 +1,29 @@
 import { BaseHandler } from './BaseHandler';
-import { Question } from '../entities/Question';
 import { Topic } from '../entities/Topic';
-import { QueueService, OpenAIService } from '../services';
+import { Question } from '../entities/Question';
+import { QueueService } from '../services/QueueService';
+import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
 import { QUEUE_NAMES } from '../config/queues';
-import { z } from 'zod';
 import { ProcessingStatus } from '../entities/BaseEntity';
+import { z } from 'zod';
 
-interface TopicInput {
-  topicId: string;
-  content: string;
-}
-
-const FollowUpQuestionsSchema = z.object({
-  questions: z.array(z.object({
-    question: z.string(),
-    reasoning: z.string(),
-    concepts: z.array(z.string())
-  })),
-  summary: z.string(),
-  suggestedApproach: z.string()
+// Schema for API requests
+export const CreateTopicSchema = z.object({
+  content: z.string().min(1)
 });
 
-type FollowUpQuestion = z.infer<typeof FollowUpQuestionsSchema>['questions'][number];
-type FollowUpQuestions = z.infer<typeof FollowUpQuestionsSchema>;
+// Schema for queue messages
+export const TopicQueueSchema = z.object({
+  id: z.string().uuid(),
+  content: z.string()
+});
+
+export type CreateTopicInput = z.infer<typeof CreateTopicSchema>;
+export type TopicQueueInput = z.infer<typeof TopicQueueSchema>;
+
+// Union type for all possible inputs
+export type TopicInput = CreateTopicInput | TopicQueueInput;
 
 export class TopicHandler extends BaseHandler<TopicInput, Topic> {
   private openAIService: OpenAIService;
@@ -43,62 +43,48 @@ export class TopicHandler extends BaseHandler<TopicInput, Topic> {
     this.openAIService = openAIService;
   }
 
-  // Public method for handling web/API requests
-  public async handleRequest(input: TopicInput): Promise<Topic> {
-    return this.process(input);
+  protected async transformQueueMessage(message: any): Promise<TopicInput> {
+    // Extract just the fields we need from the queue message
+    const { id, content } = message.entity;
+    return { id, content };
   }
 
-  // Protected method for internal queue processing
-  // Topic handler is used to generate follow-up questions for a topic and is triggered when a new topic is pushed into the topic queue 
-  // by the study handler
   protected async process(input: TopicInput): Promise<Topic> {
-    const question = new Question();
-    question.content = input.content;
-    question.topicId = input.topicId;
-    question.status = ProcessingStatus.PENDING;
-
-    // Get the topic
-    const topic = await this.dataSource
-      .getRepository(Topic)
-      .findOne({ where: { id: input.topicId } });
-
-    if (!topic) {
-      throw new Error(`Topic not found: ${input.topicId}`);
+    // If this is a new topic (from API)
+    if (!('id' in input)) {
+      const topic = new Topic();
+      topic.content = input.content;
+      topic.status = ProcessingStatus.PENDING;
+      return topic;
     }
 
-    // Generate follow-up questions using OpenAI with structured output
-    const prompt = `Given the topic "${topic.content}" and the question "${input.content}",
-      generate 2-3 follow-up questions that would help deepen understanding through the Socratic method.
-      
-      For each question:
-      1. The question should be probing and encourage critical thinking
-      2. Provide reasoning for why this question is important
-      3. List key concepts that the question explores
-      
-      Also provide:
-      1. A brief summary of how these questions relate to the main topic
-      2. A suggested approach for exploring these questions`;
+    // If this is a queued topic
+    const topic = await this.repository.findOne({ 
+      where: { id: input.id },
+      relations: ['questions']
+    });
 
-    const followUpQuestions = await this.openAIService.generateStructuredOutput(
-      prompt,
-      FollowUpQuestionsSchema
-    );
+    if (!topic) {
+      throw new Error(`Topic not found: ${input.id}`);
+    }
 
-    // Format the questions for storage
-    const formattedQuestions = followUpQuestions.questions
-      .map((q: FollowUpQuestion, i: number) => 
-        `${i + 1}. ${q.question}\nReasoning: ${q.reasoning}\nConcepts: ${q.concepts.join(', ')}`
-      )
-      .join('\n\n');
+    // Generate follow-up questions using OpenAI
+    const prompt = `Given the topic "${topic.content}", generate 2-3 follow-up questions that would help deepen understanding through the Socratic method.`;
+    const questions = await this.openAIService.generateQuestions(prompt);
 
-    const fullOutput = `${formattedQuestions}\n\nSummary: ${followUpQuestions.summary}\n\nApproach: ${followUpQuestions.suggestedApproach}`;
+    // Create question entities
+    const questionEntities = questions.map((questionText: string) => {
+      const question = new Question();
+      question.content = questionText;
+      question.topic = topic;
+      question.status = ProcessingStatus.PENDING;
+      return question;
+    });
 
-    question.topic = topic;
-    question.followUpQuestions = fullOutput;
+    // Save questions
+    topic.questions = questionEntities;
+    topic.status = ProcessingStatus.COMPLETED;
 
-    // Save to database
-    const savedQuestion = await this.repository.save(question);
-
-    return savedQuestion;
+    return topic;
   }
 } 

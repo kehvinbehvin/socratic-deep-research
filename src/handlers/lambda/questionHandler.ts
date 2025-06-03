@@ -1,11 +1,16 @@
 import { z } from 'zod';
 import { createLambdaHandler } from '../../utils/lambda';
+import { ProcessingStatus } from '../../entities/BaseEntity';
 
 // Question request schema
-const QuestionRequestSchema = z.object({
-  questionId: z.string().uuid(),
-  topicId: z.string().uuid(),
+export const QuestionRequestSchema = z.object({
+  id: z.string().uuid(),
   content: z.string().min(1),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(), 
+  status: z.nativeEnum(ProcessingStatus),
+  topicId: z.string().uuid(),
+  questionId: z.string().uuid(),
 });
 
 export const handler = createLambdaHandler({

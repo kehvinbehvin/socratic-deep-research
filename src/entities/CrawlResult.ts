@@ -1,22 +1,27 @@
 import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
-import type { SearchResult, Review } from '../types';
-import { SearchResult as SearchResultEntity } from './SearchResult';
+import { SearchResult } from './SearchResult';
+import { Review } from './Review';
 
-interface S3Link {
+interface CrawlResultItem {
   url: string;
-  s3Key: string;
-  status: 'completed' | 'failed';
+  title?: string;
+  s3Key?: string;
+  error?: string;
+  success: boolean;
 }
 
 @Entity()
 export class CrawlResult extends BaseEntity {
-  @ManyToOne(() => SearchResultEntity, { eager: true })
-  searchResult: SearchResultEntity;
-
   @Column('jsonb')
-  s3Links: S3Link[];
+  results: CrawlResultItem[];
 
-  @OneToMany('Review', 'crawlResult')
+  @ManyToOne(() => SearchResult, searchResult => searchResult.crawlResults)
+  searchResult: SearchResult;
+
+  @Column('uuid')
+  searchResultId: string;
+
+  @OneToMany(() => Review, review => review.crawlResult)
   reviews: Review[];
 } 

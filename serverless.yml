@@ -7,7 +7,10 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   architecture: arm64
+  timeout: 30 # Default timeout for all functions
+  memorySize: 1024 # Default memory for all functions
   environment:
+    NODE_ENV: ${env:NODE_ENV, 'development'}
     POSTGRES_HOST: ${env:POSTGRES_HOST, 'localhost'}
     POSTGRES_PORT: ${env:POSTGRES_PORT, '5432'}
     POSTGRES_DB: ${env:POSTGRES_DB, 'myapp'}
@@ -20,99 +23,147 @@ provider:
     OPENAI_API_KEY: ${env:OPENAI_API_KEY}
     SERP_API_KEY: ${env:SERP_API_KEY}
     FIRECRAWL_API_KEY: ${env:FIRECRAWL_API_KEY}
+    S3_BUCKET: ${env:S3_BUCKET, 'socratic-learning-content'}
   iam:
     role:
       statements:
         - Effect: Allow
           Action:
             - sqs:*
-          Resource: "*"
+          Resource: 
+            - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*-queue
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+          Resource: !Sub arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
 
 functions:
-  # API Gateway handlers
-  topicApi:
+  # API Gateway handler - only entry point
+  studyApi:
     handler: dist/handlers/lambda/studyHandler.handler
+    timeout: 10
     events:
       - httpApi:
           path: /api/study
           method: POST
+          cors: true
 
   # Queue processing handlers
   processTopic:
     handler: dist/handlers/lambda/topicHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:topic-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:topic-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processQuestion:
     handler: dist/handlers/lambda/questionHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:question-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:question-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processReflection:
     handler: dist/handlers/lambda/reflectionHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:reflection-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:reflection-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processClarification:
     handler: dist/handlers/lambda/clarificationHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:clarification-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:clarification-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processQueryPreparation:
     handler: dist/handlers/lambda/queryPreparationHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:query-preparation-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:query-preparation-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processSearch:
     handler: dist/handlers/lambda/searchHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:search-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:search-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processCrawl:
     handler: dist/handlers/lambda/crawlHandler.handler
+    timeout: 60 # Longer timeout for crawling
+    memorySize: 2048 # More memory for processing web content
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:crawl-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:crawl-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processReview:
     handler: dist/handlers/lambda/reviewHandler.handler
+    timeout: 60 # Longer timeout for LLM processing
+    memorySize: 2048 # More memory for text processing
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:review-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:review-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
 
   processCompleted:
     handler: dist/handlers/lambda/completedHandler.handler
+    timeout: 30
     reservedConcurrency: 5
     events:
       - sqs:
-          arn: arn:aws:sqs:${self:provider.region}:${aws:accountId}:completed-queue
+          arn: !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:completed-queue
           batchSize: 1
+          functionResponseType: ReportBatchItemFailures
+
+resources:
+  Resources:
+    ContentBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldContent
+              Status: Enabled
+              ExpirationInDays: 30
 
 plugins:
   - serverless-offline-sqs
   - serverless-offline
+  - serverless-dotenv-plugin
 
 custom:
   serverless-offline:
