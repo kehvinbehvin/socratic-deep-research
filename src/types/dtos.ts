@@ -1,107 +1,71 @@
-export interface TopicDTO {
+// Core properties every queue message needs
+interface QueueDTOCore {
   id: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
-}
-
-export interface QuestionDTO {
-  id: string;
-  reasoning: string;
-  questions: string[];
   topicId: string;
-  createdAt: Date;
-  updatedAt: Date;
   status: string;
   error?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface ReflectionDTO {
-  id: string;
-  reflections: {
-    question: string;
-    reflection: string;
-    confidence: number;
-  }[];
-  questionId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
+// Track IDs from previous stages
+interface StageIds {
+  questions?: string[];
+  reflections?: string[];
+  clarifications?: string[];
+  queryPreparations?: string[];
+  searchResults?: string[];
+  crawlResults?: string[];
+  reviews?: string[];
 }
 
-export interface ClarificationDTO {
-  id: string;
-  gaps: string[];
-  assumptions: string[];
-  newConcepts: string[];
-  analysis: string;
-  reflectionId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
+// Generic queue DTO
+interface GenericQueueDTO<T = unknown> {
+  core: QueueDTOCore;
+  previousStages: StageIds;
+  currentStage: T;
 }
 
-export interface QueryPreparationDTO {
-  id: string;
-  queries: {
-    query: string;
-    reasoning: string;
-    priority: number;
-  }[];
-  clarificationId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
+// Stage-specific data interfaces
+interface TopicStageData {
+  title: string;
+  description: string;
 }
 
-export interface SearchResultDTO {
-  id: string;
-  results: {
-    url: string;
-    title: string;
-    snippet: string;
-    rank: number;
-  }[];
-  queryPreparationId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
+interface QuestionStageData {
+  questions: string[];
 }
 
-export interface CrawlResultDTO {
-  id: string;
-  s3Links: {
-    url: string;
-    s3Key: string;
-    status: string;
-  }[];
-  searchResultId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
+interface ReflectionStageData {
+  reflections: string[];
 }
 
-export interface ReviewDTO {
-  id: string;
-  sourceReliability: {
-    score: number;
-    reasoning: string;
-  };
-  relevantChunks: {
-    content: string;
-    relevanceScore: number;
-    vectorId: string;
-  }[];
-  crawlResultId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: string;
-  error?: string;
-} 
+interface ClarificationStageData {
+  clarifications: string[];
+}
+
+interface QueryPreparationStageData {
+  queries: string[];
+  keywords: string[];
+}
+
+interface SearchResultStageData {
+  searchResults: string[];
+}
+
+interface CrawlResultStageData {
+  crawlResults: string[];
+}
+
+interface ReviewStageData {
+  reviews: string[];
+}
+
+export type QueueTopicDTO = GenericQueueDTO<TopicStageData>;
+export type QueueQuestionDTO = GenericQueueDTO<QuestionStageData>;
+export type QueueReflectionDTO = GenericQueueDTO<ReflectionStageData>;
+export type QueueClarificationDTO = GenericQueueDTO<ClarificationStageData>;
+export type QueueQueryPreparationDTO = GenericQueueDTO<QueryPreparationStageData>;
+export type QueueSearchResultDTO = GenericQueueDTO<SearchResultStageData>;
+export type QueueCrawlResultDTO = GenericQueueDTO<CrawlResultStageData>;
+export type QueueReviewDTO = GenericQueueDTO<ReviewStageData>;
