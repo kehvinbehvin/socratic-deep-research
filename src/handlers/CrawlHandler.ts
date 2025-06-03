@@ -73,6 +73,8 @@ export class CrawlHandler extends BaseHandler<CrawlInput, CrawlResult> {
     crawlResult.s3Links = [];
     crawlResult.status = ProcessingStatus.PENDING;
 
-    return crawlResult;
+    const savedCrawlResult = await this.repository.save(crawlResult);
+
+    return savedCrawlResult;
   }
 } 

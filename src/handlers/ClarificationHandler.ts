@@ -82,6 +82,8 @@ export class ClarificationHandler extends BaseHandler<ClarificationInput, QueryP
     queryPreparation.keywords = 'test';
     queryPreparation.status = ProcessingStatus.PENDING;
 
-    return queryPreparation;
+    const savedQueryPreparation = await this.repository.save(queryPreparation);
+
+    return savedQueryPreparation;
   }
 } 

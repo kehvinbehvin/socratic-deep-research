@@ -65,6 +65,8 @@ export class QueryPreparationHandler extends BaseHandler<QueryPreparationInput, 
     searchResult.results = [];
     searchResult.status = ProcessingStatus.PENDING;
 
-    return searchResult;
+    const savedSearchResult = await this.repository.save(searchResult);
+
+    return savedSearchResult;
   }
 } 

@@ -62,6 +62,8 @@ export class ReviewHandler extends BaseHandler<ReviewInput, Review> {
     // 3. Generating a comprehensive review
     // 4. Storing the review results
 
-    return review;
+    const savedReview = await this.repository.save(review);
+
+    return savedReview;
   }
 } 
