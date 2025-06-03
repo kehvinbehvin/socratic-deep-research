@@ -123,7 +123,7 @@ export abstract class BaseHandler<TInput, TOutput extends BaseEntity> {
   }
 
   // Transform queue message to handler input
-  protected async transformQueueMessage(message: QueueMessage<any>): Promise<TInput> {
+protected async transformQueueMessage(message: QueueMessage<any>): Promise<TInput> {
     // Default implementation extracts needed fields from the entity
     // Handlers can override this to provide custom transformation
     return message.entity;

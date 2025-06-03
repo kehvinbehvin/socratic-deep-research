@@ -164,6 +164,6 @@ export class ServiceFactory {
   }
 
   public getStudyService(): StudyService {
-    return this.studyService;
+    return new StudyService(this.dataSource, this.loggerService);
   }
 } 

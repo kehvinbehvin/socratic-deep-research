@@ -3,9 +3,9 @@ import { createLambdaHandler } from '../../utils/lambda';
 import { z } from 'zod';
 
 export const handler = createLambdaHandler({
-  schema: z.object({}),
+  schema: undefined, 
   handler: async (input, serviceFactory) => {
-    const studies = await serviceFactory.getStudyService().getStudies();
-    return createResponse(200, studies);
+    const studies = await serviceFactory.getStudyService();
+    return await studies.getStudies()
   },
 }); 

@@ -17,6 +17,6 @@ export const handler = createLambdaHandler({
   schema: QuestionRequestSchema,
   handler: async (input, serviceFactory) => {
     const questionHandler = serviceFactory.getQuestionHandler();
-    return questionHandler.handleRequest(input);
+    return questionHandler.handleRequest(input || { content: '', id: '', topicId: '' });
   },
 }); 
