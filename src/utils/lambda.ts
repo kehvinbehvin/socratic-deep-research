@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { APIGatewayProxyHandler, SQSEvent } from 'aws-lambda';
 import { initializeDatabase } from '../config/database';
 import { ServiceFactory } from '../services/ServiceFactory';
 import { LoggerService } from '../services/LoggerService';
@@ -22,12 +22,20 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): APIGatewa
       const serviceFactory = await ServiceFactory.initialize(dataSource);
       logger.info('Services initialized');
 
-      // Parse and validate request body
-      const body = JSON.parse(event.body || '{}') as T;
-      logger.info('Request body', { body });
+      // Check for SQS event or API Gateway event
+      let input: T;
+      if (event.body) {
+        input = JSON.parse(event.body || '{}') as T;
+        logger.info('Request body: ' + JSON.stringify(input));
+      } else {
+        const sqsEvent = event as unknown as SQSEvent;
+        const records = sqsEvent.Records;
+        input = JSON.parse(records[0].body) as T;
+        logger.info('Request body: ' + JSON.stringify(input));
+      }
 
       // Process the request
-      const result = await handler(body, serviceFactory);
+      const result = await handler(input, serviceFactory);
       logger.info('Result', { content_size: JSON.stringify(result).length });
 
       // Clean up

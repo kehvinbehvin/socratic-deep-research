@@ -8,7 +8,7 @@ export class Review extends BaseEntity {
   @Column('text')
   chunkId: string; // chunk id from vector db
 
-  @Column('int32')
+  @Column('int')
   relevance: number; 
 
   @ManyToOne(() => Topic, topic => topic.crawlResults)

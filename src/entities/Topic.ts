@@ -13,24 +13,24 @@ export class Topic extends BaseEntity {
   @Column('text')
   content: string;
 
-  @OneToMany(() => Question, question => question.topic)
+  @OneToMany(() => Question, question => question.topic, { nullable: true})
   questions: Question[];
 
-  @OneToMany(() => Reflection, reflection => reflection.topic)
+  @OneToMany(() => Reflection, reflection => reflection.topic, { nullable: true})
   reflections: Reflection[];
 
-  @OneToMany(() => Clarification, clarification => clarification.topic)
+  @OneToMany(() => Clarification, clarification => clarification.topic, { nullable: true})
   clarifications: Clarification[];
 
-  @OneToMany(() => QueryPreparation, queryPreparation => queryPreparation.topic)
+  @OneToMany(() => QueryPreparation, queryPreparation => queryPreparation.topic, { nullable: true})
   queryPreparations: QueryPreparation[];
 
-  @OneToMany(() => SearchResult, searchResult => searchResult.topic)
+  @OneToMany(() => SearchResult, searchResult => searchResult.topic, { nullable: true})
   searchResults: SearchResult[];
 
-  @OneToMany(() => CrawlResult, crawlResult => crawlResult.topic)
+  @OneToMany(() => CrawlResult, crawlResult => crawlResult.topic, { nullable: true})
   crawlResults: CrawlResult[];
 
-  @OneToMany(() => Review, review => review.topic)
+  @OneToMany(() => Review, review => review.topic, { nullable: true})
   reviews: Review[];
 } 

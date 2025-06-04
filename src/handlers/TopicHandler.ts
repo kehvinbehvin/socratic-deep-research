@@ -36,15 +36,16 @@ export class TopicHandler extends QueueHandler<TopicStageData, QuestionStageData
   }
 
   protected async process(message: QueueTopicDTO): Promise<Question[]> {
+    console.log('Processing message:', message);
     // Get the topic
     const topic = await this.dataSource
       .getRepository(Topic)
       .findOne({
-        where: { id: message.core.topicId }
+        where: { id: message.core.id }
       });
 
     if (!topic) {
-      throw new Error(`Topic not found: ${message.core.topicId}`);
+      throw new Error(`Topic not found: ${message.core.id}`);
     }
 
     // TODO: Use LLM to generate questions
