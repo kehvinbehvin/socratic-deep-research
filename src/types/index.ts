@@ -9,6 +9,7 @@ import type { QueryPreparation } from '../entities/QueryPreparation';
 import type { SearchResult } from '../entities/SearchResult';
 import type { CrawlResult } from '../entities/CrawlResult';
 import type { Review } from '../entities/Review';
+import { ProcessingStatus } from '../entities/BaseEntity';
 
 export type {
   Topic,
@@ -37,26 +38,38 @@ export interface Study {
   id: string;
   topic: string;
   stage: StudyStage;
+  status: ProcessingStatus;
   createdAt: string;
   updatedAt: string;
-  questions?: string[];
-  reflections?: string[];
-  clarifications?: string[];
-  searchQueries?: string[];
-  searchResults?: {
-    url: string;
-    title: string;
-    snippet: string;
-  }[];
-  crawlResults?: {
-    url: string;
-    s3Key: string;
-    reliability: number;
-  }[];
-  reviewResults?: {
-    chunkId: string;
-    content: string;
-    relevanceScore: number;
-  }[];
   error?: string;
+  questions: {
+    content: string;
+    createdAt: string;
+  }[];
+  reflections: {
+    content: string;
+    createdAt: string;
+  }[];
+  clarifications: {
+    content: string;
+    createdAt: string;
+  }[];
+  queryPreparations: {
+    query: string;
+    createdAt: string;
+  }[];
+  searchResults: {
+    url: string;
+    createdAt: string;
+  }[];
+  crawlResults: {
+    url: string;
+    reliability: number;
+    createdAt: string;
+  }[];
+  reviews: {
+    chunkId: string;
+    relevanceScore: number;
+    createdAt: string;
+  }[];
 } 

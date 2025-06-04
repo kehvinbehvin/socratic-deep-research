@@ -1,4 +1,4 @@
-import { APIGatewayProxyHandler, SQSEvent } from 'aws-lambda';
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, SQSEvent } from 'aws-lambda';
 import { initializeDatabase } from '../config/database';
 import { ServiceFactory } from '../services/ServiceFactory';
 import { LoggerService } from '../services/LoggerService';
@@ -10,7 +10,7 @@ export interface HandlerConfig<T> {
   handler: (input: T , serviceFactory: ServiceFactory) => Promise<any>;
 }
 
-export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): APIGatewayProxyHandler {
+export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: APIGatewayProxyEvent | SQSEvent) => Promise<any> {
   return async (event) => {
     let dataSource;
     try {
@@ -23,17 +23,23 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): APIGatewa
       logger.info('Services initialized');
 
       // Check for SQS event or API Gateway event
-      let input: T;
-      if (event.body) {
-        input = JSON.parse(event.body || '{}') as T;
-        logger.info('Request body: ' + JSON.stringify(input));
+      let input;
+      if ('Records' in event) {
+          // SQS event
+          const sqsEvent = event as SQSEvent;
+          const records = sqsEvent.Records;
+          if (records && records.length > 0) {
+              input = JSON.parse(records[0].body);
+          } else {
+              input = {};
+          }
+          logger.info('SQS event body: ' + JSON.stringify(input));
       } else {
-        const sqsEvent = event as unknown as SQSEvent;
-        const records = sqsEvent.Records;
-        input = JSON.parse(records[0].body) as T;
-        logger.info('Request body: ' + JSON.stringify(input));
+          // API Gateway event
+          const apiEvent = event as APIGatewayProxyEvent;
+          input = apiEvent.body ? JSON.parse(apiEvent.body) : {};
+          logger.info('API Gateway body: ' + JSON.stringify(input));
       }
-
       // Process the request
       const result = await handler(input, serviceFactory);
       logger.info('Result', { content_size: JSON.stringify(result).length });

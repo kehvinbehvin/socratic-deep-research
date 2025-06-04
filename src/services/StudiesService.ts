@@ -17,20 +17,56 @@ export class StudyService {
     this.logger.info('Getting studies');
 
     const topics = await this.dataSource
-    .getRepository(Topic)
-    .createQueryBuilder('topic')
-    .leftJoinAndSelect('topic.questions', 'question')
-    .orderBy('topic.createdAt', 'DESC')
-    .getMany();
+      .getRepository(Topic)
+      .createQueryBuilder('topic')
+      .leftJoinAndSelect('topic.questions', 'questions')
+      .leftJoinAndSelect('topic.reflections', 'reflections')
+      .leftJoinAndSelect('topic.clarifications', 'clarifications')
+      .leftJoinAndSelect('topic.queryPreparations', 'queryPreparations')
+      .leftJoinAndSelect('topic.searchResults', 'searchResults')
+      .leftJoinAndSelect('topic.crawlResults', 'crawlResults')
+      .leftJoinAndSelect('topic.reviews', 'reviews')
+      .orderBy('topic.createdAt', 'DESC')
+      .getMany();
       
     return topics.map(topic => ({
-        id: topic.id,
-        topic: topic.content,
-        stage: mapStatusToStage(topic.status),
-        createdAt: topic.createdAt.toISOString(),
-        updatedAt: topic.updatedAt.toISOString(),
-        questions: topic.questions?.map(q => q.content) || [],
-        error: topic.error
+      id: topic.id,
+      topic: topic.content,
+      stage: mapStatusToStage(topic.status),
+      status: topic.status,
+      createdAt: topic.createdAt.toISOString(),
+      updatedAt: topic.updatedAt.toISOString(),
+      error: topic.error,
+      questions: topic.questions?.map(q => ({
+        content: q.content,
+        createdAt: q.createdAt.toISOString()
+      })) || [],
+      reflections: topic.reflections?.map(r => ({
+        content: r.content,
+        createdAt: r.createdAt.toISOString()
+      })) || [],
+      clarifications: topic.clarifications?.map(c => ({
+        content: c.content,
+        createdAt: c.createdAt.toISOString()
+      })) || [],
+      queryPreparations: topic.queryPreparations?.map(qp => ({
+        query: qp.query,
+        createdAt: qp.createdAt.toISOString()
+      })) || [],
+      searchResults: topic.searchResults?.map(sr => ({
+        url: sr.url,
+        createdAt: sr.createdAt.toISOString()
+      })) || [],
+      crawlResults: topic.crawlResults?.map(cr => ({
+        url: cr.url,
+        reliability: cr.reliability,
+        createdAt: cr.createdAt.toISOString()
+      })) || [],
+      reviews: topic.reviews?.map(r => ({
+        chunkId: r.chunkId,
+        relevanceScore: r.relevance,
+        createdAt: r.createdAt.toISOString()
+      })) || []
     }));
   }
 }

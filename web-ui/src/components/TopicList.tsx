@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import type { Study, StudyStage } from '../types';
+import type { Study } from '../types';
+import { StageTimeline } from './StageTimeline';
+import { ContentSection } from './ContentSection';
 
 export function TopicList() {
   const [studies, setStudies] = useState<Study[]>([]);
@@ -53,32 +55,6 @@ export function TopicList() {
     }
   };
 
-  const getStageNumber = (stage: StudyStage): number => {
-    const stages: StudyStage[] = [
-      'TOPIC',
-      'QUESTION',
-      'REFLECTION',
-      'CLARIFICATION',
-      'QUERY_PREPARATION',
-      'SEARCH',
-      'CRAWL',
-      'REVIEW',
-      'COMPLETED'
-    ];
-    return stages.indexOf(stage);
-  };
-
-  const getStatusBadgeClass = (stage: StudyStage) => {
-    switch (stage) {
-      case 'COMPLETED':
-        return 'status-badge-completed';
-      case 'FAILED':
-        return 'status-badge-failed';
-      default:
-        return 'status-badge-in-progress';
-    }
-  };
-
   return (
     <div className="card">
       <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -89,9 +65,9 @@ export function TopicList() {
           <div key={study.id} className="card">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-medium text-gray-900">{study.topic}</h4>
-              <span className={`status-badge ${getStatusBadgeClass(study.stage)}`}>
-                {study.stage.replace(/_/g, ' ')}
-              </span>
+              <div className="text-sm text-gray-500">
+                {new Date(study.createdAt).toLocaleString()}
+              </div>
             </div>
             
             {study.error ? (
@@ -100,106 +76,53 @@ export function TopicList() {
               </div>
             ) : (
               <>
-                <div className="mt-4">
-                  <div className="flex mb-2 items-center justify-between">
-                    <span className="text-gray-500 text-sm font-medium">
-                      Progress
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      style={{ width: `${(getStageNumber(study.stage) / 8) * 100}%` }}
-                      className="progress-bar-fill"
+                <StageTimeline currentStage={study.stage} status={study.status} />
+
+                <div className="mt-6 space-y-6">
+                  {/* Questions and Initial Understanding */}
+                  <div className="space-y-4">
+                    <ContentSection
+                      title="Questions"
+                      items={study.questions}
+                      type="text"
+                    />
+                    <ContentSection
+                      title="Reflections"
+                      items={study.reflections}
+                      type="text"
+                    />
+                    <ContentSection
+                      title="Clarifications Needed"
+                      items={study.clarifications}
+                      type="text"
                     />
                   </div>
-                </div>
 
-                <div className="mt-4 space-y-3">
-                  {study.questions && study.questions.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Questions:</h5>
-                      <ul className="mt-1 list-disc list-inside text-gray-600">
-                        {study.questions.map((q, i) => (
-                          <li key={i}>{q}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {/* Research and Analysis */}
+                  <div className="space-y-4">
+                    <ContentSection
+                      title="Search Queries"
+                      items={study.queryPreparations}
+                      type="text"
+                    />
+                    <ContentSection
+                      title="Search Results"
+                      items={study.searchResults}
+                      type="url"
+                    />
+                    <ContentSection
+                      title="Analyzed Sources"
+                      items={study.crawlResults}
+                      type="url"
+                    />
+                  </div>
 
-                  {study.reflections && study.reflections.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Reflections:</h5>
-                      <ul className="mt-1 list-disc list-inside text-gray-600">
-                        {study.reflections.map((r, i) => (
-                          <li key={i}>{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {study.clarifications && study.clarifications.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Clarifications:</h5>
-                      <ul className="mt-1 list-disc list-inside text-gray-600">
-                        {study.clarifications.map((c, i) => (
-                          <li key={i}>{c}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {study.searchResults && study.searchResults.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Search Results:</h5>
-                      <div className="mt-1 space-y-2">
-                        {study.searchResults.map((result, i) => (
-                          <div key={i} className="text-sm">
-                            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              {result.title}
-                            </a>
-                            <p className="text-gray-600">{result.snippet}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {study.crawlResults && study.crawlResults.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Source Reliability:</h5>
-                      <div className="mt-1 space-y-2">
-                        {study.crawlResults.map((result, i) => (
-                          <div key={i} className="text-sm flex items-center justify-between">
-                            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                              {new URL(result.url).hostname}
-                            </a>
-                            <span className="text-gray-600">
-                              Reliability: {(result.reliability * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {study.reviewResults && study.reviewResults.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-gray-900">Key Findings:</h5>
-                      <div className="mt-1 space-y-2">
-                        {study.reviewResults
-                          .sort((a, b) => b.relevanceScore - a.relevanceScore)
-                          .slice(0, 3)
-                          .map((result, i) => (
-                            <div key={i} className="text-sm">
-                              <p className="text-gray-600">{result.content}</p>
-                              <span className="text-xs text-gray-500">
-                                Relevance: {(result.relevanceScore * 100).toFixed(1)}%
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Insights */}
+                  <ContentSection
+                    title="Key Findings"
+                    items={study.reviews}
+                    type="relevance"
+                  />
                 </div>
               </>
             )}

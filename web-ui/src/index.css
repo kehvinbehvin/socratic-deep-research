@@ -208,4 +208,72 @@
   .chart-container {
     height: 12rem;
     margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .gap-2 {
+    gap: 0.5rem;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  
+  .text-blue-600 {
+    color: #2563eb;
+  }
+  
+  .text-blue-600:hover {
+    text-decoration: underline;
+  }
+  
+  .bg-indigo-600 {
+    background-color: #4f46e5;
+  }
+  
+  .bg-gray-200 {
+    background-color: #e5e7eb;
+  }
+  
+  .text-indigo-600 {
+    color: #4f46e5;
+  }
+  
+  .text-gray-400 {
+    color: #9ca3af;
+  }
+  
+  .rounded-full {
+    border-radius: 9999px;
+  }
+  
+  .w-2 {
+    width: 0.5rem;
+  }
+  
+  .h-2 {
+    height: 0.5rem;
+  }
+  
+  .relative {
+    position: relative;
+  }
+  
+  .mt-1 {
+    margin-top: 0.25rem;
+  }
+  
+  .mt-2 {
+    margin-top: 0.5rem;
+  }
+  
+  .mt-6 {
+    margin-top: 1.5rem;
   } 
