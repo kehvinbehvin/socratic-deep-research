@@ -38,17 +38,7 @@ export abstract class QueueHandler<T, K, S extends BaseEntity> {
   protected abstract process(input: GenericQueueDTO<T>): Promise<S[]>;
 
   // Transform entity to queue message DTO
-  protected async transformQueueMessage(entities: S[], prevMessage: GenericQueueDTO<T>): Promise<GenericQueueDTO<K>> {
-    // Default implementation extracts needed fields from the entity
-    // Handlers can override this to provide custom transformation
-    return {
-      core: {
-        ...prevMessage.core,
-        updatedAt: new Date()
-      },
-      previousStages: prevMessage.previousStages,
-    } as GenericQueueDTO<K>;
-  }  
+  protected abstract transformQueueMessage(entities: S[], prevMessage: GenericQueueDTO<T>): Promise<GenericQueueDTO<K>>;
 
   // Public method for handling queue messages
   public async handleQueueMessage(message: GenericQueueDTO<T>): Promise<S[]> {

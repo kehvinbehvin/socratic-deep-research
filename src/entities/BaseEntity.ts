@@ -4,6 +4,7 @@ export enum ProcessingStatus {
   PENDING = 'pending',
   PROCESSING = 'processing',
   COMPLETED = 'completed',
+  CLEAN_UP = 'clean_up',
   FAILED = 'failed'
 }
 

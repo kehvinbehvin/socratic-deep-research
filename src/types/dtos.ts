@@ -28,8 +28,7 @@ export interface GenericQueueDTO<T = unknown> {
 
 // Stage-specific data interfaces
 export interface TopicStageData {
-  title: string;
-  description: string;
+  content: string;
 }
 
 export interface QuestionStageData {
