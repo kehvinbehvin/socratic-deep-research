@@ -2,7 +2,7 @@ import type { StudyStage } from '../types';
 
 interface StageTimelineProps {
   currentStage: StudyStage;
-  status: string;
+  status: 'pending' | 'processing' | 'completed' | 'clean_up' | 'failed';
 }
 
 const stages: StudyStage[] = [
@@ -19,19 +19,50 @@ const stages: StudyStage[] = [
 
 export function StageTimeline({ currentStage, status }: StageTimelineProps) {
   const currentIndex = stages.indexOf(currentStage);
+  
+  // Calculate progress based on both stage and status
+  const getProgress = () => {
+    if (status === 'failed') return currentIndex / stages.length * 100;
+    if (status === 'completed') return 100;
+    if (status === 'processing') {
+      return ((currentIndex + 0.5) / stages.length) * 100;
+    }
+    return (currentIndex / stages.length) * 100;
+  };
+
+  // Get appropriate status badge class
+  const getStatusBadgeClass = () => {
+    switch (status) {
+      case 'completed':
+        return 'status-badge-completed';
+      case 'failed':
+        return 'status-badge-failed';
+      case 'processing':
+        return 'status-badge-in-progress';
+      default:
+        return 'status-badge-pending';
+    }
+  };
+
+  // Get stage display text
+  const getStageDisplay = () => {
+    if (status === 'completed') return 'COMPLETED';
+    if (status === 'failed') return 'FAILED';
+    return currentStage.replace(/_/g, ' ');
+  };
 
   return (
     <div className="mt-4">
       <div className="flex mb-2 items-center justify-between">
         <span className="text-gray-500 text-sm font-medium">Learning Progress</span>
-        <span className={`status-badge ${status === 'FAILED' ? 'status-badge-failed' : 'status-badge-in-progress'}`}>
-          {currentStage.replace(/_/g, ' ')}
+        <span className={`status-badge ${getStatusBadgeClass()}`}>
+          {getStageDisplay()}
         </span>
       </div>
       <div className="relative">
         <div className="progress-bar">
           <div
-            style={{ width: `${((currentIndex + 1) / stages.length) * 100}%` }}
+            style={{ width: `${getProgress()}%` }}
             className="progress-bar-fill"
           />
         </div>
@@ -40,7 +71,9 @@ export function StageTimeline({ currentStage, status }: StageTimelineProps) {
             <div
               key={stage}
               className={`w-2 h-2 rounded-full ${
-                index <= currentIndex ? 'bg-indigo-600' : 'bg-gray-200'
+                index < currentIndex || (index === currentIndex && status !== 'pending')
+                  ? 'bg-indigo-600'
+                  : 'bg-gray-200'
               }`}
               style={{ transform: 'translateX(-50%)' }}
             />
@@ -51,7 +84,9 @@ export function StageTimeline({ currentStage, status }: StageTimelineProps) {
             <span
               key={stage}
               className={`text-xs ${
-                index <= currentIndex ? 'text-indigo-600' : 'text-gray-400'
+                index < currentIndex || (index === currentIndex && status !== 'pending')
+                  ? 'text-indigo-600'
+                  : 'text-gray-400'
               }`}
               style={{
                 transform: 'translateX(-50%) rotate(-45deg)',

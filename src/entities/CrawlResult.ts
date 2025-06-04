@@ -11,7 +11,7 @@ export class CrawlResult extends BaseEntity {
   @ManyToOne(() => Topic, topic => topic.searchResults)
   topic: Topic;
 
-  @Column('int')
+  @Column('decimal', { precision: 4, scale: 2 })
   reliability: number;
 
   @OneToOne(() => Review, review => review.crawlResult, { nullable: true })

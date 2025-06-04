@@ -1,22 +1,18 @@
 import { Review } from '../entities/Review';
 import { QueueService } from '../services/QueueService';
 import { OpenAIService } from '../services/OpenAIService';
-import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
-import { CompleteStageData, GenericQueueDTO, ReviewStageData } from '../types/dtos';
 import { QueueHandler } from './QueueHandler';
-import { Topic } from '../entities/Topic';
-import { ProcessingStatus } from '../entities/BaseEntity';
+import { ReviewStageData, GenericQueueDTO, CompleteStageData } from '../types/dtos';
+import { Topic } from '../entities';
 
-export class ReviewHandler extends QueueHandler<ReviewStageData, CompleteStageData, Topic> {
+export class ReviewHandler extends QueueHandler<ReviewStageData, CompleteStageData, Review> {
   private openAIService: OpenAIService;
-  private s3Service: S3Service;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    openAIService: OpenAIService,
-    s3Service: S3Service
+    openAIService: OpenAIService
   ) {
     super(
       queueService,
@@ -26,40 +22,66 @@ export class ReviewHandler extends QueueHandler<ReviewStageData, CompleteStageDa
       'COMPLETE'
     );
     this.openAIService = openAIService;
-    this.s3Service = s3Service;
   }
 
-  protected async transformQueueMessage(entities: Topic[], prevMessage: GenericQueueDTO<ReviewStageData>): Promise<GenericQueueDTO<CompleteStageData>> {
-    // Extract just the fields we need from the queue message
+  protected async transformQueueMessage(entities: Review[], prevMessage: GenericQueueDTO<ReviewStageData>): Promise<GenericQueueDTO<CompleteStageData>> {
     return {
       core: {
         ...prevMessage.core,
         updatedAt: new Date()
       },
-      previousStages: prevMessage.previousStages,
+      previousStages: {
+        ...prevMessage.previousStages,
+        reviews: entities.map(entity => entity.id)
+      },
       currentStage: {
-        complete: entities.map(entity => entity.id)
+        complete: entities.map(entity => entity.chunkId)
       }
     }
   }
 
-  protected async process(input: GenericQueueDTO<ReviewStageData>): Promise<Topic[]> {
-    // TODO: Integrate with llm to score relevance of the crawl results
-    // TODO: Integrate with text spliiter to chunk text and store in vector db
-    const topic = await this.dataSource
-      .getRepository(Topic)
-      .findOne({
-        where: { id: input.core.topicId },
-        relations: ['reviews']
-      });
+  protected async process(input: GenericQueueDTO<ReviewStageData>): Promise<Review[]> {
+    // Create mock reviews
+    const mockReviews = [
+      {
+        chunkId: "chunk1",
+        relevance: 0.95,
+        content: "The implementation methodology shows strong potential for scalability across different domains."
+      },
+      {
+        chunkId: "chunk2",
+        relevance: 0.88,
+        content: "Performance metrics indicate significant improvements over traditional approaches."
+      },
+      {
+        chunkId: "chunk3",
+        relevance: 0.92,
+        content: "Integration with existing systems can be achieved through standardized protocols."
+      },
+      {
+        chunkId: "chunk4",
+        relevance: 0.85,
+        content: "Regulatory compliance frameworks provide clear guidelines for implementation."
+      },
+      {
+        chunkId: "chunk5",
+        relevance: 0.90,
+        content: "Recent case studies demonstrate successful adoption in various industries."
+      }
+    ];
 
-    if (!topic) {
-      throw new Error(`Topic not found: ${input.core.topicId}`);
-    }
+    // Create and save review entities
+    const reviews = await Promise.all(
+      mockReviews.map(async ({ chunkId, relevance, content }) => {
+        const review = new Review();
+        review.chunkId = chunkId;
+        review.relevance = relevance;
+        const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ where: { id: input.core.topicId }});
+        review.topic = topic;
+        return await this.dataSource.getRepository(Review).save(review);
+      })
+    );
 
-    topic.status = ProcessingStatus.CLEAN_UP;
-    await this.dataSource.getRepository(Topic).save(topic);
-
-    return [topic] as Topic[];
+    return reviews;
   }
 } 

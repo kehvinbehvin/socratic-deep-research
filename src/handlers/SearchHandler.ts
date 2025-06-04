@@ -1,19 +1,19 @@
 import { SearchResult } from '../entities/SearchResult';
-import { QueueService } from '../services/QueueService';
-import { SerpApiService } from '../services/SerpApiService';
-import { DataSource } from 'typeorm';
-import { GenericQueueDTO, SearchResultStageData } from '../types/dtos';
-import { CrawlResultStageData } from '../types/dtos';
 import { CrawlResult } from '../entities/CrawlResult';
+import { QueueService } from '../services/QueueService';
+import { OpenAIService } from '../services/OpenAIService';
+import { DataSource } from 'typeorm';
 import { QueueHandler } from './QueueHandler';
+import { SearchResultStageData, GenericQueueDTO, CrawlResultStageData } from '../types/dtos';
+import { Topic } from '../entities';
 
 export class SearchHandler extends QueueHandler<SearchResultStageData, CrawlResultStageData, CrawlResult> {
-  private serpApiService: SerpApiService;
+  private openAIService: OpenAIService;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    serpApiService: SerpApiService
+    openAIService: OpenAIService
   ) {
     super(
       queueService,
@@ -22,11 +22,10 @@ export class SearchHandler extends QueueHandler<SearchResultStageData, CrawlResu
       'SEARCH',
       'CRAWL'
     );
-    this.serpApiService = serpApiService;
+    this.openAIService = openAIService;
   }
 
   protected async transformQueueMessage(entities: CrawlResult[], prevMessage: GenericQueueDTO<SearchResultStageData>): Promise<GenericQueueDTO<CrawlResultStageData>> {
-    // Extract just the fields we need from the queue message
     return {
       core: {
         ...prevMessage.core,
@@ -37,14 +36,48 @@ export class SearchHandler extends QueueHandler<SearchResultStageData, CrawlResu
         searchResults: entities.map(entity => entity.id)
       },
       currentStage: {
-        crawlResults: entities.map(entity => entity.id)
+        crawlResults: entities.map(entity => entity.url)
       }
     }
   }
 
   protected async process(input: GenericQueueDTO<SearchResultStageData>): Promise<CrawlResult[]> {
-    // TODO: Integrate with Firecrawl to crawl the web
+    // Create mock crawl results
+    const mockCrawlResults = [
+      {
+        url: "https://example.com/comprehensive-guide",
+        reliability: 0.92
+      },
+      {
+        url: "https://research.org/latest-findings",
+        reliability: 0.88
+      },
+      {
+        url: "https://academic.edu/methodology-review",
+        reliability: 0.95
+      },
+      {
+        url: "https://industry.com/case-studies",
+        reliability: 0.85
+      },
+      {
+        url: "https://institute.org/best-practices",
+        reliability: 0.90
+      }
+    ];
 
-    return [] as CrawlResult[];
+    // Create and save crawl result entities
+    const crawlResults = await Promise.all(
+      mockCrawlResults.map(async ({ url, reliability }) => {
+        const crawlResult = new CrawlResult();
+        crawlResult.url = url;
+        crawlResult.reliability = reliability;
+        const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ where: { id: input.core.topicId }});
+        crawlResult.topic = topic;
+        return await this.dataSource.getRepository(CrawlResult).save(crawlResult);
+      })
+    );
+
+    return crawlResults;
   }
 } 

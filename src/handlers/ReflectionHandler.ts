@@ -5,6 +5,7 @@ import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
 import { QueueHandler } from './QueueHandler';
 import { ClarificationStageData, GenericQueueDTO, ReflectionStageData } from '../types/dtos';
+import { Topic } from '../entities';
 
 export class ReflectionHandler extends QueueHandler<ReflectionStageData, ClarificationStageData, Clarification> {
   private openAIService: OpenAIService;
@@ -41,8 +42,27 @@ export class ReflectionHandler extends QueueHandler<ReflectionStageData, Clarifi
     }
   }
 
-  protected async process(input: GenericQueueDTO<ReflectionStageData>): Promise<Clarification[]> {
-    // Implementation here...
-    return [] as Clarification[]; // Placeholder
+  protected async process(input: GenericQueueDTO<ReflectionStageData>): Promise<Reflection[]> {
+    // Create mock reflections based on the questions
+    const mockReflections = [
+      "The foundational principles appear to be interconnected with several key theoretical frameworks.",
+      "Current real-world applications show promising results but face implementation challenges.",
+      "There are significant technological and methodological limitations that need to be addressed.",
+      "Historical development shows a clear trend towards more sophisticated approaches.",
+      "Ethical considerations include privacy concerns and potential societal impacts."
+    ];
+
+    // Create and save reflection entities
+    const reflections = await Promise.all(
+      mockReflections.map(async (content) => {
+        const reflection = new Reflection();
+        reflection.content = content;
+        const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ where: { id: input.core.topicId }});
+        reflection.topic = topic;
+        return await this.dataSource.getRepository(Reflection).save(reflection);
+      })
+    );
+
+    return reflections;
   }
 } 

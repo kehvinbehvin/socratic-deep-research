@@ -112,7 +112,7 @@ export class ServiceFactory {
     return new SearchHandler(
       this.queueService,
       this.dataSource,
-      this.serpApiService
+      this.openAIService
     );
   }
 
@@ -129,8 +129,7 @@ export class ServiceFactory {
     return new ReviewHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService,
-      this.s3Service
+      this.openAIService
     );
   }
 
