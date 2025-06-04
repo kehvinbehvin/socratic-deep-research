@@ -91,7 +91,7 @@ export class ServiceFactory {
     return new ReflectionHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.langChainService
     );
   }
 

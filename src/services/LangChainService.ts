@@ -9,7 +9,7 @@ export class LangChainService {
 
   constructor() {
     this.model = new ChatOpenAI({
-      modelName: "gpt-4-turbo-preview",
+      modelName: "gpt-4o-mini",
       openAIApiKey: process.env.OPENAI_API_KEY,
       temperature: 0.7,
       maxTokens: 2000,
@@ -36,7 +36,11 @@ export class LangChainService {
         outputParser,
       ]);
 
+      console.log('Generating response from LLM', new Date().toISOString());
+      const start = new Date();
       const response = await chain.invoke(params.input);
+      const end = new Date();
+      console.log(`LangChain response time: ${end.getTime() - start.getTime()}ms`);
 
       // Validate response against schema
       const validatedResponse = params.schema.parse(response);
