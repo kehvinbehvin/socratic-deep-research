@@ -41,6 +41,7 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
           logger.info('API Gateway body: ' + JSON.stringify(input));
       }
       // Process the request
+      console.log('Processing input', input);
       const result = await handler(input, serviceFactory);
       logger.info('Result', { content_size: JSON.stringify(result).length });
 

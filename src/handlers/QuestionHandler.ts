@@ -1,32 +1,42 @@
 import { QueueHandler } from './QueueHandler';
 import { Question } from '../entities/Question';
 import { QueueService } from '../services/QueueService';
-import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
 import { GenericQueueDTO, QuestionStageData, ReflectionStageData } from '../types/dtos';
 import { Reflection, Topic } from '../entities';
+import { LangChainService } from '../services/LangChainService';
+import { z } from 'zod';
+
+// Define the schema for LLM output
+const ReflectionOutputSchema = z.object({
+  reflections: z.array(z.object({
+    content: z.string(),
+    depth: z.number().min(1).max(5),
+    insights: z.array(z.string())
+  }))
+});
 
 // Union type for all possible inputs
 export class QuestionHandler extends QueueHandler<QuestionStageData, ReflectionStageData, Reflection> {
-  private openAIService: OpenAIService;
+  private langChainService: LangChainService;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    openAIService: OpenAIService
+    langChainService: LangChainService
   ) {
     super(
       queueService,
       dataSource,
-      Question,
+      Reflection,
       'QUESTION',
       'REFLECTION'
     );
-    this.openAIService = openAIService;
+    this.langChainService = langChainService;
   }
 
   protected async transformQueueMessage(entities: Reflection[], prevMessage: GenericQueueDTO<QuestionStageData>): Promise<GenericQueueDTO<ReflectionStageData>> {
-    // Extract just the fields we need from the queue message
+    console.log('Transforming queue message', { entities, prevMessage });
     return {
       core: {
         ...prevMessage.core,
@@ -34,7 +44,7 @@ export class QuestionHandler extends QueueHandler<QuestionStageData, ReflectionS
       },
       previousStages: {
         ...prevMessage.previousStages,
-        questions: entities.map(entity => entity.id)
+        reflections: entities.map(entity => entity.id)
       },
       currentStage: {
         reflections: entities.map(entity => entity.content)
@@ -42,29 +52,66 @@ export class QuestionHandler extends QueueHandler<QuestionStageData, ReflectionS
     }
   }
 
-  protected async process(input: GenericQueueDTO<QuestionStageData>): Promise<Question[]> {
-    const topic = input.currentStage.questions[0];
-    
-    // Create mock questions
-    const mockQuestions = [
-      "What are the key principles and concepts that form the foundation of this topic?",
-      "How does this topic relate to or impact real-world applications?",
-      "What are the current challenges or limitations in this area?",
-      "How has this field evolved over time, and what future developments are expected?",
-      "What are the ethical considerations or implications associated with this topic?"
-    ];
+  protected async process(input: GenericQueueDTO<QuestionStageData>): Promise<Reflection[]> {
+    console.log('Processing input', { input });
+    // Get the topic and its questions
+    const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ 
+      where: { id: input.core.topicId }
+    });
 
-    // Create and save question entities
-    const questions = await Promise.all(
-      mockQuestions.map(async (content) => {
-        const question = new Question();
-        question.content = content;
-        const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ where: { id: input.core.topicId }});
-        question.topic = topic;
-        return await this.dataSource.getRepository(Question).save(question);
+    if (!input.previousStages.questions || input.previousStages.questions.length === 0) {
+      throw new Error('No questions found in previous stage');
+    }
+
+    const questions = await this.dataSource.getRepository(Question).findByIds(
+      input.previousStages.questions
+    );
+
+    if (questions.length === 0) {
+      throw new Error('Could not find any questions with the provided IDs');
+    }
+
+    const systemPrompt = `You are a Socratic tutor helping students reflect deeply on a set of questions.
+Your task is to generate thoughtful reflections that explore the interconnections between these questions.
+Each reflection should:
+- Demonstrate deep understanding of the topic
+- Connect multiple concepts and questions together
+- Consider different perspectives
+- Identify key insights
+- Rate the depth of understanding (1-5)
+
+Generate 5 reflections that together cover all aspects of the questions provided.`;
+
+    const userPrompt = `Generate reflections about this topic: {topic}
+Based on these questions:
+{questions}
+
+Format your response as a JSON object with an array of reflections.
+Each reflection should have:
+- content: detailed reflection text that connects multiple questions and concepts
+- depth: number from 1-5 indicating depth of understanding
+- insights: array of key takeaways from this reflection`;
+
+    const result = await this.langChainService.generateStructured({
+      systemPrompt,
+      userPrompt,
+      schema: ReflectionOutputSchema,
+      input: { 
+        topic: topic.content,
+        questions: questions.map(q => q.content).join('\n')
+      }
+    });
+
+    // Create and save Reflection entities
+    const reflections = await Promise.all(
+      result.reflections.map(async (r) => {
+        const reflection = new Reflection();
+        reflection.content = r.content;
+        reflection.topic = topic;
+        return await this.dataSource.getRepository(Reflection).save(reflection);
       })
     );
 
-    return questions;
+    return reflections;
   }
 } 

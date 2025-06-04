@@ -19,6 +19,7 @@ import { StudyService } from './StudiesService';
 import { MetricsService } from './MetricsService';
 import { SystemMonitor } from '../utils/monitor';
 import { MonitoringService } from './MonitoringService';
+import { LangChainService } from './LangChainService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -31,6 +32,7 @@ export class ServiceFactory {
   private loggerService: LoggerService;
   private systemMonitor: SystemMonitor;
   private monitoring: MonitoringService;
+  private langChainService: LangChainService;
   
   constructor() {
     this.loggerService = LoggerService.getInstance();
@@ -60,6 +62,7 @@ export class ServiceFactory {
         ServiceFactory.instance.s3Service,
         ServiceFactory.instance.loggerService
       );
+      ServiceFactory.instance.langChainService = new LangChainService();
     }
     return ServiceFactory.instance;
   }
@@ -72,7 +75,7 @@ export class ServiceFactory {
     return new TopicHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.langChainService
     );
   }
 
@@ -80,7 +83,7 @@ export class ServiceFactory {
     return new QuestionHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.langChainService
     );
   }
 
@@ -178,5 +181,9 @@ export class ServiceFactory {
       this.systemMonitor,
       this.loggerService
     );
+  }
+
+  public getLangChainService(): LangChainService {
+    return this.langChainService;
   }
 } 
