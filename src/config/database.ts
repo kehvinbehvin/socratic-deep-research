@@ -5,7 +5,6 @@ import {
   Reflection,
   Clarification,
   QueryPreparation,
-  SearchQuery,
   SearchResult,
   CrawlResult,
   Review
@@ -26,7 +25,6 @@ const AppDataSource = new DataSource({
     Reflection,
     Clarification,
     QueryPreparation,
-    SearchQuery,
     SearchResult,
     CrawlResult,
     Review
