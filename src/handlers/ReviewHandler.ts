@@ -57,7 +57,7 @@ export class ReviewHandler extends QueueHandler<ReviewStageData, CompleteStageDa
       throw new Error(`Topic not found: ${input.core.topicId}`);
     }
 
-    topic.status = ProcessingStatus.COMPLETED;
+    topic.status = ProcessingStatus.CLEAN_UP;
     await this.dataSource.getRepository(Topic).save(topic);
 
     return [topic] as Topic[];

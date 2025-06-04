@@ -56,4 +56,4 @@ export const deleteMessage = async (receiptHandle: string) => {
     console.error('Error deleting message:', error);
     throw error;
   }
-}; 
+};
