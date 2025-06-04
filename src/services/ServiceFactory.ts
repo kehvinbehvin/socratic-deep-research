@@ -99,7 +99,7 @@ export class ServiceFactory {
     return new ClarificationHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.langChainService
     );
   }
 
