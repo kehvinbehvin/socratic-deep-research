@@ -19,9 +19,7 @@ export function TopicForm() {
          }),
       });
 
-      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(`Failed to submit topic: ${response.status} ${response.statusText}`);

@@ -1,46 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import type { Study } from '../types';
 import { StageTimeline } from './StageTimeline';
 import { ContentSection } from './ContentSection';
 
 export function TopicList() {
   const [studies, setStudies] = useState<Study[]>([]);
-  const [wsRetryCount, setWsRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
-
-  const connectWebSocket = useCallback(() => {
-    const ws = new WebSocket('ws://localhost:3000');
-
-    ws.onmessage = (event) => {
-      const study = JSON.parse(event.data);
-      setStudies(prevStudies => {
-        const index = prevStudies.findIndex(t => t.id === study.id);
-        if (index >= 0) {
-          const newStudies = [...prevStudies];
-          newStudies[index] = study;
-          return newStudies;
-        }
-        return [study, ...prevStudies];
-      });
-    };
-
-    ws.onclose = () => {
-      if (wsRetryCount < MAX_RETRIES) {
-        setTimeout(() => {
-          setWsRetryCount(prev => prev + 1);
-          connectWebSocket();
-        }, 1000 * Math.pow(2, wsRetryCount)); // Exponential backoff
-      }
-    };
-
-    return ws;
-  }, [wsRetryCount]);
-
-  useEffect(() => {
-    fetchStudies();
-    const ws = connectWebSocket();
-    return () => ws.close();
-  }, [connectWebSocket]);
 
   const fetchStudies = async () => {
     try {
@@ -54,6 +18,17 @@ export function TopicList() {
       console.error('Error fetching studies:', error);
     }
   };
+
+  useEffect(() => {
+    // Initial fetch
+    fetchStudies();
+
+    // Set up polling every 5 seconds
+    const pollInterval = setInterval(fetchStudies, 5000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(pollInterval);
+  }, []);
 
   return (
     <div className="card">
