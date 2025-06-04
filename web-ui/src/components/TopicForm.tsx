@@ -6,6 +6,7 @@ export function TopicForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with topic:', topic);
     setIsSubmitting(true);
     try {
       const response = await fetch('http://localhost:3000/api/study', {
@@ -13,16 +14,22 @@ export function TopicForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({ 
+          content: topic
+         }),
       });
 
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
       if (!response.ok) {
-        throw new Error('Failed to submit topic');
+        throw new Error(`Failed to submit topic: ${response.status} ${response.statusText}`);
       }
 
       setTopic('');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error details:', error);
       alert('Failed to submit topic. Please try again.');
     } finally {
       setIsSubmitting(false);
