@@ -5,7 +5,7 @@ import { ServiceFactory } from '../../services/ServiceFactory';
 
 export const handler = createLambdaHandler({
   handler: async (input: GenericQueueDTO<CrawlResultStageData>, serviceFactory: ServiceFactory) => {
-    const crawlHandler = serviceFactory.getCrawlHandler();
-    return crawlHandler.handleQueueMessage(input);
+    const crawlResultHandler = serviceFactory.getCrawlResultHandler();
+    return crawlResultHandler.handleQueueMessage(input);
   },
 }); 

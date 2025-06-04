@@ -1,21 +1,18 @@
 import { CrawlResult } from '../entities/CrawlResult';
 import { QueueService } from '../services/QueueService';
-import { FireCrawlService } from '../services/FireCrawlService';
 import { S3Service } from '../services/S3Service';
 import { DataSource } from 'typeorm';
-import { CrawlResultStageData, GenericQueueDTO, ReviewStageData } from '../types/dtos';
-import { QueueHandler } from './QueueHandler';
+import { CrawlResultStageData, GenericQueueDTO, ReviewStageData, TopicStageData } from '../types/dtos';
 import { Review } from '../entities/Review';
 import { Topic } from '../entities';
+import { QueueHandler } from './QueueHandler';
 
-export class CrawlHandler extends QueueHandler<CrawlResultStageData, ReviewStageData, Review> {
-  private fireCrawlService: FireCrawlService;
+export class CrawlResultHandler extends QueueHandler<CrawlResultStageData, ReviewStageData, Review> {
   private s3Service: S3Service;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    fireCrawlService: FireCrawlService,
     s3Service: S3Service
   ) {
     super(
@@ -25,7 +22,6 @@ export class CrawlHandler extends QueueHandler<CrawlResultStageData, ReviewStage
       'CRAWL',
       'REVIEW'
     );
-    this.fireCrawlService = fireCrawlService;
     this.s3Service = s3Service;
   }
 

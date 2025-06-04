@@ -7,6 +7,7 @@ import { QueryPreparation } from './QueryPreparation';
 import { SearchResult } from './SearchResult';
 import { CrawlResult } from './CrawlResult';
 import { Review } from './Review';
+import { CrawlRequest } from './CrawlRequest';
 
 @Entity()
 export class Topic extends BaseEntity {
@@ -33,4 +34,7 @@ export class Topic extends BaseEntity {
 
   @OneToMany(() => Review, review => review.topic, { nullable: true})
   reviews: Review[];
+
+  @OneToMany(() => CrawlRequest, crawlRequest => crawlRequest.topic, { nullable: true})
+  crawlRequests: CrawlRequest[];
 } 

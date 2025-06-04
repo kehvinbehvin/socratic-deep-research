@@ -77,6 +77,14 @@ functions:
           path: /api/metrics
           method: GET
 
+  fireCrawlWebhook:
+    handler: dist/handlers/lambda/firecrawlWebhookHandler.handler
+    events:
+      - http:
+          path: /webhook/firecrawl
+          method: post
+          cors: true
+
   # Queue processing handlers
   processTopic:
     handler: dist/handlers/lambda/topicHandler.handler

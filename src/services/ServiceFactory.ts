@@ -12,7 +12,7 @@ import { ReflectionHandler } from '../handlers/ReflectionHandler';
 import { ClarificationHandler } from '../handlers/ClarificationHandler';
 import { QueryPreparationHandler } from '../handlers/QueryPreparationHandler';
 import { SearchHandler } from '../handlers/SearchHandler';
-import { CrawlHandler } from '../handlers/CrawlHandler';
+import { CrawlResultHandler } from '../handlers/CrawlResultHandler';
 import { ReviewHandler } from '../handlers/ReviewHandler';
 import { CompletedHandler } from '../handlers/CompletedHandler';
 import { StudyService } from './StudiesService';
@@ -20,6 +20,7 @@ import { MetricsService } from './MetricsService';
 import { SystemMonitor } from '../utils/monitor';
 import { MonitoringService } from './MonitoringService';
 import { LangChainService } from './LangChainService';
+import { FireCrawlWebhookHandler } from '../handlers/FireCrawlWebhookHandler';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -60,7 +61,7 @@ export class ServiceFactory {
       );
       ServiceFactory.instance.fireCrawlService = new FireCrawlService(
         ServiceFactory.instance.s3Service,
-        ServiceFactory.instance.loggerService
+        ServiceFactory.instance.loggerService,
       );
       ServiceFactory.instance.langChainService = new LangChainService();
     }
@@ -115,15 +116,14 @@ export class ServiceFactory {
     return new SearchHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.fireCrawlService
     );
   }
 
-  public getCrawlHandler(): CrawlHandler {
-    return new CrawlHandler(
+  public getCrawlResultHandler(): CrawlResultHandler {
+    return new CrawlResultHandler(
       this.queueService,
       this.dataSource,
-      this.fireCrawlService,
       this.s3Service
     );
   }
@@ -185,5 +185,14 @@ export class ServiceFactory {
 
   public getLangChainService(): LangChainService {
     return this.langChainService;
+  }
+
+  public getFireCrawlWebhookHandler(): FireCrawlWebhookHandler {
+    return new FireCrawlWebhookHandler(
+      this.queueService,
+      this.dataSource,
+      this.fireCrawlService,
+      this.langChainService
+    );
   }
 } 
