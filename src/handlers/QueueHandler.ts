@@ -1,9 +1,8 @@
 import { QueueService } from '../services/QueueService';
 import { QUEUE_NAMES, QueueName } from '../config/queues';
 import { BaseEntity } from '../entities/BaseEntity';
-import { DataSource, Repository, EntityTarget, ObjectLiteral } from 'typeorm';
+import { DataSource, Repository, EntityTarget } from 'typeorm';
 import { LoggerService } from '../services/LoggerService';
-import { MonitoringService } from '../services/MonitoringService';
 import { GenericQueueDTO } from '../types/dtos';
 
 // T: Queue Generic Input type for the handler
@@ -16,7 +15,6 @@ export abstract class QueueHandler<T, K, S extends BaseEntity> {
   protected readonly sourceQueue?: QueueName;
   protected readonly targetQueue?: QueueName;
   protected logger: LoggerService;
-  protected monitoring: MonitoringService;
 
   constructor(
     queueService: QueueService,
@@ -31,7 +29,6 @@ export abstract class QueueHandler<T, K, S extends BaseEntity> {
     this.sourceQueue = sourceQueue ? QUEUE_NAMES[sourceQueue] : undefined;
     this.targetQueue = targetQueue ? QUEUE_NAMES[targetQueue] : undefined;
     this.logger = LoggerService.getInstance();
-    this.monitoring = MonitoringService.getInstance();
   }
 
   // Processes queue message DTO and returns new entities

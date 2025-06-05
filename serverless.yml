@@ -33,6 +33,7 @@ provider:
     AWS_SDK_LOAD_CONFIG: ${file(env.dev.yml):AWS_SDK_LOAD_CONFIG, 'true'}
     AWS_PROFILE: ${file(env.dev.yml):AWS_PROFILE, 'relocate'}
     QDRANT_URL: ${file(env.dev.yml):QDRANT_URL, 'http://localhost:6333'}
+    PUSHGATEWAY_URL: ${file(env.dev.yml):PUSHGATEWAY_URL, 'http://localhost:9091'}
   iam:
     role:
       statements:

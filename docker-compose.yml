@@ -63,6 +63,35 @@ services:
       retries: 5
     networks:
       - backend
+  
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - backend
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    ports:
+      - "9091:9091"
+    networks:
+      - backend
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3002:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - backend
+    restart: unless-stopped
 
 networks:
   backend:
@@ -72,3 +101,5 @@ volumes:
   postgres_data:
   pgadmin_data: 
   qdrant_data:
+  prometheus_data:
+  grafana_data:

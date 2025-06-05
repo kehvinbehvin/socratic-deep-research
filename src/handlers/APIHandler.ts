@@ -1,13 +1,11 @@
 import { QueueService } from '../services/QueueService';
 import { LoggerService } from '../services/LoggerService';
-import { MonitoringService } from '../services/MonitoringService';
 import { QUEUE_NAMES, QueueName } from '../config/queues';
 import { BaseEntity, DataSource } from 'typeorm';
 
 export abstract class APIHandler<TRequest, TEntity, TQueueDTO> {
   protected queueService: QueueService;
   protected logger: LoggerService;
-  protected monitoring: MonitoringService;
   protected readonly targetQueue?: QueueName | undefined;
   protected dataSource: DataSource;
 
@@ -15,7 +13,6 @@ export abstract class APIHandler<TRequest, TEntity, TQueueDTO> {
     this.dataSource = dataSource;
     this.queueService = queueService;
     this.logger = LoggerService.getInstance();
-    this.monitoring = MonitoringService.getInstance();
     this.targetQueue = targetQueue ? QUEUE_NAMES[targetQueue] : undefined;
   }
 

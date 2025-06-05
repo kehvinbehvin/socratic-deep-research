@@ -16,12 +16,11 @@ import { CrawlResultHandler } from '../handlers/CrawlResultHandler';
 import { ReviewHandler } from '../handlers/ReviewHandler';
 import { CompletedHandler } from '../handlers/CompletedHandler';
 import { StudyService } from './StudiesService';
-import { MetricsService } from './MetricsService';
-import { SystemMonitor } from '../utils/monitor';
-import { MonitoringService } from './MonitoringService';
 import { LangChainService } from './LangChainService';
 import { FireCrawlWebhookHandler } from '../handlers/FireCrawlWebhookHandler';
 import { QdrantVectorStoreService } from './QdrantVectorStoreService';
+import { UsageTrackingService } from './UsageTrackingService';
+import { CentralizedMetricsService } from './CentralisedMetricsService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -32,15 +31,13 @@ export class ServiceFactory {
   private fireCrawlService: FireCrawlService;
   private s3Service: S3Service;
   private loggerService: LoggerService;
-  private systemMonitor: SystemMonitor;
-  private monitoring: MonitoringService;
   private langChainService: LangChainService;
   private qdrantVectorStoreService: QdrantVectorStoreService;
+  private usageTrackingService: UsageTrackingService;
+  private centralizedMetrics: CentralizedMetricsService;
   
   constructor() {
     this.loggerService = LoggerService.getInstance();
-    this.monitoring = MonitoringService.getInstance();
-    this.systemMonitor = new SystemMonitor();
     this.queueService = new QueueService(
       process.env.QUEUE_ENDPOINT || 'http://localhost:9324',
       process.env.QUEUE_REGION || 'us-east-1',
@@ -57,6 +54,8 @@ export class ServiceFactory {
 
       ServiceFactory.instance.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
       ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
+
+      ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091');
       
       ServiceFactory.instance.s3Service = new S3Service(
         process.env.S3_BUCKET_REGION || 'ap-southeast-1',
@@ -71,9 +70,14 @@ export class ServiceFactory {
       
       ServiceFactory.instance.qdrantVectorStoreService = new QdrantVectorStoreService(
         ServiceFactory.instance.loggerService,
-        ServiceFactory.instance.monitoring,
+        process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091',
         process.env.QDRANT_URL || 'http://localhost:6333',
         process.env.OPENAI_API_KEY || '',
+      );
+      ServiceFactory.instance.usageTrackingService = new UsageTrackingService(
+        ServiceFactory.instance.loggerService,
+        ServiceFactory.instance.centralizedMetrics,
+        process.env.PROMETHEUS_URL || 'http://localhost:9090'
       );
     }
     return ServiceFactory.instance;
@@ -187,14 +191,6 @@ export class ServiceFactory {
     return new StudyService(this.dataSource, this.loggerService);
   }
 
-  public getMetricsService(): MetricsService {
-    return new MetricsService(
-      this.monitoring,
-      this.systemMonitor,
-      this.loggerService
-    );
-  }
-
   public getLangChainService(): LangChainService {
     return this.langChainService;
   }
@@ -213,7 +209,12 @@ export class ServiceFactory {
     return this.qdrantVectorStoreService;
   }
 
-  public getMonitoring(): MonitoringService {
-    return this.monitoring;
+  public getUsageTrackingService(): UsageTrackingService {
+    return this.usageTrackingService;
   }
+
+  public getCentralizedMetrics(): CentralizedMetricsService {
+    return this.centralizedMetrics;
+  }
+
 } 

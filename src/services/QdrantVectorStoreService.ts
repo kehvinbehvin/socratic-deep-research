@@ -1,19 +1,21 @@
 import { QdrantClient } from '@qdrant/js-client-rest';
 import OpenAI from 'openai';
 import { LoggerService } from './LoggerService';
-import { MonitoringService } from './MonitoringService';
 import { v4 as uuidv4 } from 'uuid';
+import { CentralizedMetricsService } from './CentralisedMetricsService';
+import { MetricDefinitions } from '../metrics/definitions';
+
 
 export class QdrantVectorStoreService {
   private qdrant: QdrantClient;
   private openai: OpenAI;
   private collectionName: string;
   private embeddingModel: string;
-
+  private metrics: CentralizedMetricsService;
+  
   constructor(
     private readonly loggerService: LoggerService,
-    private readonly monitoringService: MonitoringService,
-
+    private readonly pushgatewayUrl: string,
     qdrantUrl: string,
     openaiApiKey: string,
     collectionName = 'documents',
@@ -23,6 +25,7 @@ export class QdrantVectorStoreService {
     this.openai = new OpenAI({ apiKey: openaiApiKey });
     this.collectionName = collectionName;
     this.embeddingModel = embeddingModel;
+    this.metrics = CentralizedMetricsService.getInstance(loggerService, this.pushgatewayUrl);
 
     this.loggerService.info('QdrantVectorStoreService initialized', {
       collectionName,
@@ -43,19 +46,32 @@ export class QdrantVectorStoreService {
         model: this.embeddingModel,
         input: text,
       });
-      const duration = Date.now() - startTime;
 
       if (!res.data[0]?.embedding?.length) {
         throw new Error('Empty embedding returned by OpenAI');
       }
 
-      this.monitoringService.recordMetric('embedding_generation_duration', duration);
-      this.monitoringService.recordMetric('embedding_generation_success', 1);
+      // Record metrics
+      const duration = (Date.now() - startTime) / 1000; // Convert to seconds
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.embeddingDuration,
+        duration,
+        { model: this.embeddingModel }
+      );
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.embeddingOperations,
+        1,
+        { model: this.embeddingModel, status: 'success' }
+      );
 
       return res.data[0].embedding;
     } catch (error) {
       this.loggerService.error('Error generating embedding', { error });
-      this.monitoringService.recordMetric('embedding_generation_error', 1);
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.embeddingOperations,
+        1,
+        { model: this.embeddingModel, status: 'error' }
+      );
       throw error;
     }
   }
@@ -79,16 +95,29 @@ export class QdrantVectorStoreService {
         ],
       });
 
-      const duration = Date.now() - startTime;
-      this.monitoringService.recordMetric('vector_indexing_duration', duration);
-      this.monitoringService.recordMetric('vector_indexing_success', 1);
+      const duration = (Date.now() - startTime) / 1000;
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.indexingDuration,
+        duration,
+        { collection: this.collectionName }
+      );
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.indexingOperations,
+        1,
+        { collection: this.collectionName, status: 'success' }
+      );
+
 
       this.loggerService.info('Successfully indexed text', { id });
 
       return id;
     } catch (error) {
       this.loggerService.error('Error indexing text', { error });
-      this.monitoringService.recordMetric('vector_indexing_error', 1);
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.indexingOperations,
+        1,
+        { collection: this.collectionName, status: 'error' }
+      );
       throw error;
     }
   }
@@ -105,8 +134,16 @@ export class QdrantVectorStoreService {
       });
 
       const duration = Date.now() - startTime;
-      this.monitoringService.recordMetric('vector_search_duration', duration);
-      this.monitoringService.recordMetric('vector_search_success', 1);
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.searchDuration,
+        duration,
+        { collection: this.collectionName }
+      );
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.searchOperations,
+        1,
+        { collection: this.collectionName, status: 'success' }
+      );
 
       this.loggerService.info('Successfully searched text', { 
         query: query.substring(0, 100), // Log only first 100 chars
@@ -120,7 +157,11 @@ export class QdrantVectorStoreService {
       }));
     } catch (error) {
       this.loggerService.error('Error searching text', { error, query: query.substring(0, 100) });
-      this.monitoringService.recordMetric('vector_search_error', 1);
+      this.metrics.observe(
+        MetricDefinitions.vectorStore.searchOperations,
+        1,
+        { collection: this.collectionName, status: 'error' }
+      );
       throw error;
     }
   }
