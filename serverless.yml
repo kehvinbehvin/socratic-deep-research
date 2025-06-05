@@ -32,6 +32,7 @@ provider:
     FC_WEBHOOK: ${file(env.dev.yml):FC_WEBHOOK}
     AWS_SDK_LOAD_CONFIG: ${file(env.dev.yml):AWS_SDK_LOAD_CONFIG, 'true'}
     AWS_PROFILE: ${file(env.dev.yml):AWS_PROFILE, 'relocate'}
+    QDRANT_URL: ${file(env.dev.yml):QDRANT_URL, 'http://localhost:6333'}
   iam:
     role:
       statements:

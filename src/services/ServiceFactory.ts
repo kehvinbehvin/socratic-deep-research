@@ -21,6 +21,7 @@ import { SystemMonitor } from '../utils/monitor';
 import { MonitoringService } from './MonitoringService';
 import { LangChainService } from './LangChainService';
 import { FireCrawlWebhookHandler } from '../handlers/FireCrawlWebhookHandler';
+import { QdrantVectorStoreService } from './QdrantVectorStoreService';
 
 export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
@@ -34,6 +35,7 @@ export class ServiceFactory {
   private systemMonitor: SystemMonitor;
   private monitoring: MonitoringService;
   private langChainService: LangChainService;
+  private qdrantVectorStoreService: QdrantVectorStoreService;
   
   constructor() {
     this.loggerService = LoggerService.getInstance();
@@ -66,6 +68,13 @@ export class ServiceFactory {
         ServiceFactory.instance.loggerService,
       );
       ServiceFactory.instance.langChainService = new LangChainService();
+      
+      ServiceFactory.instance.qdrantVectorStoreService = new QdrantVectorStoreService(
+        ServiceFactory.instance.loggerService,
+        ServiceFactory.instance.monitoring,
+        process.env.QDRANT_URL || 'http://localhost:6333',
+        process.env.OPENAI_API_KEY || '',
+      );
     }
     return ServiceFactory.instance;
   }
@@ -198,5 +207,13 @@ export class ServiceFactory {
       this.langChainService,
       this.s3Service
     );
+  }
+
+  public getQdrantVectorStoreService(): QdrantVectorStoreService {
+    return this.qdrantVectorStoreService;
+  }
+
+  public getMonitoring(): MonitoringService {
+    return this.monitoring;
   }
 } 
