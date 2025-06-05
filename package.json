@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "dev:build": "tsc -w",
+    "dev:build": "tsc",
     "web:start": "ts-node src/app.ts",
     "dev:start": "serverless offline start --noPrependStageInUrl --httpPort 3000",
     "dev": "concurrently \"npm run dev:build\" \"npm run dev:start\"",
@@ -18,8 +18,11 @@
     "test:topic": "curl -X POST http://localhost:3000/api/topics -H 'Content-Type: application/json' -d '{\"content\": \"Understanding TypeScript Generics\"}'",
     "test:question": "curl -X POST http://localhost:3000/api/questions -H 'Content-Type: application/json' -d '{\"topicId\": \"TOPIC_ID\", \"content\": \"How do conditional types work in TypeScript?\"}'",
     "test:reflection": "curl -X POST http://localhost:3000/api/reflections -H 'Content-Type: application/json' -d '{\"questionId\": \"QUESTION_ID\", \"content\": \"Conditional types allow us to create type definitions that depend on other types...\"}'",
+    "test:s3": "ts-node scripts/test-s3.ts",
     "logs": "tail -f logs/combined.log | pino-pretty",
-    "metrics": "tail -f logs/metrics.log | pino-pretty"
+    "metrics": "tail -f logs/metrics.log | pino-pretty",
+    "tunnel": "ngrok http 3000",
+    "expose:webhook": "ngrok http --url=anemone-caring-cheetah.ngrok-free.app 3000"
   },
   "keywords": [
     "learning",
@@ -36,6 +39,7 @@
     "@types/pg": "^8.11.2",
     "@types/ws": "^8.18.1",
     "concurrently": "^8.2.2",
+    "ngrok": "^5.0.0-beta.2",
     "nodemon": "^3.1.0",
     "serverless": "^4.4.10",
     "serverless-offline": "^14.3.4",
@@ -63,6 +67,7 @@
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.2.1",
+    "serpapi": "^2.1.0",
     "typeorm": "^0.3.20",
     "winston": "^3.11.0",
     "ws": "^8.18.2",

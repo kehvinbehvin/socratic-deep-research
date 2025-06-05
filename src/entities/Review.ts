@@ -14,10 +14,11 @@ export class Review extends BaseEntity {
   @Column('decimal', { precision: 4, scale: 2 })
   relevance: number; 
 
-  @ManyToOne(() => Topic, topic => topic.crawlResults)
+  @ManyToOne(() => Topic, topic => topic.reviews)
   topic: Topic;
 
-  @OneToOne(() => CrawlResult, crawlResult => crawlResult.review)
-  @JoinColumn()
+  @ManyToOne(() => CrawlResult, crawlResult => crawlResult.reviews, {
+    nullable: false,
+  })
   crawlResult: CrawlResult;
 } 

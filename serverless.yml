@@ -14,20 +14,24 @@ provider:
   timeout: 30 # Default timeout for all functions
   memorySize: 1024 # Default memory for all functions
   environment:
-    NODE_ENV: ${env:NODE_ENV, 'development'}
-    POSTGRES_HOST: ${env:POSTGRES_HOST, 'localhost'}
-    POSTGRES_PORT: ${env:POSTGRES_PORT, '5432'}
-    POSTGRES_DB: ${env:POSTGRES_DB, 'myapp'}
-    POSTGRES_USER: ${env:POSTGRES_USER, 'postgres'}
-    POSTGRES_PASSWORD: ${env:POSTGRES_PASSWORD, 'postgres'}
-    QUEUE_ENDPOINT: ${env:QUEUE_ENDPOINT, 'http://localhost:9324'}
-    QUEUE_REGION: ${env:QUEUE_REGION, 'elasticmq'}
-    QUEUE_ACCESS_KEY_ID: ${env:QUEUE_ACCESS_KEY_ID, 'root'}
-    QUEUE_SECRET_ACCESS_KEY: ${env:QUEUE_SECRET_ACCESS_KEY, 'root'}
-    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
-    SERP_API_KEY: ${env:SERP_API_KEY}
-    FIRECRAWL_API_KEY: ${env:FIRECRAWL_API_KEY}
-    S3_BUCKET: ${env:S3_BUCKET, 'socratic-learning-content'}
+    NODE_ENV: ${file(env.dev.yml):NODE_ENV, 'development'}
+    POSTGRES_HOST: ${file(env.dev.yml):POSTGRES_HOST, 'localhost'}
+    POSTGRES_PORT: ${file(env.dev.yml):POSTGRES_PORT, '5432'}
+    POSTGRES_DB: ${file(env.dev.yml):POSTGRES_DB, 'myapp'}
+    POSTGRES_USER: ${file(env.dev.yml):POSTGRES_USER, 'postgres'}
+    POSTGRES_PASSWORD: ${file(env.dev.yml):POSTGRES_PASSWORD, 'postgres'}
+    QUEUE_ENDPOINT: ${file(env.dev.yml):QUEUE_ENDPOINT, 'http://localhost:9324'}
+    QUEUE_REGION: ${file(env.dev.yml):QUEUE_REGION, 'elasticmq'}
+    QUEUE_ACCESS_KEY_ID: ${file(env.dev.yml):QUEUE_ACCESS_KEY_ID, 'root'}
+    QUEUE_SECRET_ACCESS_KEY: ${file(env.dev.yml):QUEUE_SECRET_ACCESS_KEY, 'root'}
+    OPENAI_API_KEY: ${file(env.dev.yml):OPENAI_API_KEY}
+    SERP_API_KEY: ${file(env.dev.yml):SERP_API_KEY}
+    FC_API_KEY: ${file(env.dev.yml):FC_API_KEY}
+    S3_BUCKET: ${file(env.dev.yml):S3_BUCKET, 'socratic-learning'}
+    X_RELOCATE_KEY: ${file(env.dev.yml):X_RELOCATE_KEY}
+    FC_WEBHOOK: ${file(env.dev.yml):FC_WEBHOOK}
+    AWS_SDK_LOAD_CONFIG: ${file(env.dev.yml):AWS_SDK_LOAD_CONFIG, 'true'}
+    AWS_PROFILE: ${file(env.dev.yml):AWS_PROFILE, 'relocate'}
   iam:
     role:
       statements:

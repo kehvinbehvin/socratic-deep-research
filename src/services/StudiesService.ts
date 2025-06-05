@@ -17,8 +17,8 @@ export class StudyService {
     this.logger.info('Getting studies');
 
     const topics = await this.dataSource
-      .getRepository(Topic)
-      .createQueryBuilder('topic')
+    .getRepository(Topic)
+    .createQueryBuilder('topic')
       .leftJoinAndSelect('topic.questions', 'questions')
       .leftJoinAndSelect('topic.reflections', 'reflections')
       .leftJoinAndSelect('topic.clarifications', 'clarifications')
@@ -26,16 +26,16 @@ export class StudyService {
       .leftJoinAndSelect('topic.searchResults', 'searchResults')
       .leftJoinAndSelect('topic.crawlResults', 'crawlResults')
       .leftJoinAndSelect('topic.reviews', 'reviews')
-      .orderBy('topic.createdAt', 'DESC')
-      .getMany();
+    .orderBy('topic.createdAt', 'DESC')
+    .getMany();
       
     return topics.map(topic => ({
-      id: topic.id,
-      topic: topic.content,
-      stage: mapStatusToStage(topic.status),
+        id: topic.id,
+        topic: topic.content,
+        stage: mapStatusToStage(topic.status),
       status: topic.status,
-      createdAt: topic.createdAt.toISOString(),
-      updatedAt: topic.updatedAt.toISOString(),
+        createdAt: topic.createdAt.toISOString(),
+        updatedAt: topic.updatedAt.toISOString(),
       error: topic.error,
       questions: topic.questions?.map(q => ({
         content: q.content,

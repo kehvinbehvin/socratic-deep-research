@@ -21,3 +21,5 @@ dist/
 Thumbs.db
 
 logs/
+
+env.dev.yml

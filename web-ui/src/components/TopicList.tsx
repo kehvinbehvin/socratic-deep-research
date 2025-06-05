@@ -90,7 +90,7 @@ export function TopicList() {
                       items={study.crawlResults}
                       type="url"
                     />
-                  </div>
+                </div>
 
                   {/* Insights */}
                   <ContentSection

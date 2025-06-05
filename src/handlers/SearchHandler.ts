@@ -37,12 +37,24 @@ export class SearchHandler extends QueueHandler<SearchResultStageData, void, Cra
 
     const crawlRequests = await Promise.all(
       urls.map(async (url) => {
-        const crawlRequest = new CrawlRequest();
-        const fireCrawlId: string = await this.fireCrawlService.createCrawlRequest(url);
-        crawlRequest.fireCrawlId = fireCrawlId;
-        crawlRequest.topic = topic;
+        try {
+          this.logger.info('Creating FireCrawl request', { url });
+          
+          const crawlRequest = new CrawlRequest();
+          crawlRequest.url = url;
+          
+          const fireCrawlId = await this.fireCrawlService.createCrawlRequest(url);
+          crawlRequest.fireCrawlId = fireCrawlId;
+          crawlRequest.topic = topic;
 
-        return await this.dataSource.getRepository(CrawlRequest).save(crawlRequest);
+          return await this.dataSource.getRepository(CrawlRequest).save(crawlRequest);
+        } catch (error) {
+          this.logger.error('Error creating crawl request', { 
+            error: error instanceof Error ? error.stack : String(error),
+            url 
+          });
+          throw error;
+        }
       })
     );
   

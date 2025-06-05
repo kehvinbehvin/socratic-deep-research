@@ -1,11 +1,15 @@
 import { S3Service } from '../services/S3Service';
 import { LoggerService } from '../services/LoggerService';
+import { Page } from '../entities/Page';
+import { DataSource } from 'typeorm';
 
 export class FireCrawlService {
+  private dataSource: DataSource;
   private s3Service: S3Service;
   private logger: LoggerService;
 
-  constructor(s3Service: S3Service, logger: LoggerService) {
+  constructor(dataSource: DataSource, s3Service: S3Service, logger: LoggerService) {
+    this.dataSource = dataSource;
     this.s3Service = s3Service;
     this.logger = logger;
   }
@@ -16,6 +20,7 @@ export class FireCrawlService {
         url: url,
         limit: 1,
         delay: 1,
+        maxDepth: 2,
         webhook: {
           url: process.env.FC_WEBHOOK,
           headers: {
@@ -42,7 +47,14 @@ export class FireCrawlService {
       });
 
       const data = await response.json();
+      console.log("FireCrawl response", data)
+
+      if (!data.success) {
+        throw new Error(data.error);
+      }
+
       this.logger.info('FireCrawl request created', { url, crawlId: data.id });
+
       return data.id;
 
     } catch (error) {
@@ -65,10 +77,25 @@ export class FireCrawlService {
       });
 
       const data = await response.json();
+
+      if(data.data.length === 0) {
+        throw new Error(`No crawled content found for crawlId: ${crawlId}`);
+      }
       
       // Process and store each crawled item
       for (const item of data.data) {
-        const key = `crawls/${crawlId}/${item.metadata.scrapeId}.json`;
+        const scrapeId = item.metadata.scrapeId;
+        const key = `crawls/${crawlId}/${scrapeId}.json`;
+
+        const pageUrl = this.getCrawlUrl(crawlId, scrapeId);
+
+        const page = await this.dataSource.getRepository(Page).save({
+          url: pageUrl,
+          crawlResult: {
+            id: crawlId
+          }
+        });
+
         await this.s3Service.uploadJson(key, {
           url: item.metadata.url,
           content: item.markdown || '',
@@ -88,29 +115,13 @@ export class FireCrawlService {
     }
   }
 
-  async getCrawledUrl(crawlId: string): Promise<string> {
-    try {
-      const files = await this.s3Service.listObjects(`crawls/${crawlId}/`);
-      if (!files || files.length === 0) {
-        throw new Error(`No crawled content found for crawlId: ${crawlId}`);
-      }
-
-      // For now, we'll just get the first file's content
-      const firstFile = files[0];
-      const content: { url: string } = await this.s3Service.getJson(firstFile);
-      return `${content.url}`;
-
-    } catch (error) {
-      this.logger.error('Failed to get crawled content', {
-        crawlId,
-        error: error instanceof Error ? error.stack : String(error)
-      });
-      throw error;
-    }
+  async getCrawledContent(crawlId: string, scrapeId: string): Promise<string> {
+    const url = this.getCrawlUrl(crawlId, scrapeId);
+    const content: string = await this.s3Service.getJson(url);
+    return content;
   }
 
-  async getCrawledContent(crawlId: string, url: string): Promise<string> {
-    const content: string = await this.s3Service.getJson(`crawls/${crawlId}/${url}.json`);
-    return content;
+  getCrawlUrl(crawlId: string, scrapeId: string): string {
+    return `https://socratic-learning.s3.ap-southeast-1.amazonaws.com/crawls/${crawlId}/${scrapeId}.json`;
   }
 } 

@@ -1,7 +1,7 @@
-import axios from 'axios';
+import { getJson, BaseResponse } from 'serpapi';
 import { LoggerService } from '../services/LoggerService';
 
-interface SerpApiResult {
+export interface SerpApiResult {
   position: number;
   title: string;
   snippet: string;
@@ -19,16 +19,16 @@ export class SerpApiService {
 
   async search(query: string, numResults: number = 10): Promise<SerpApiResult[]> {
     try {
-      const response = await axios.get('https://serpapi.com/search', {
-        params: {
-          q: query,
-          api_key: this.apiKey,
-          engine: 'google',
-          num: numResults
-        }
+      console.log("Check API key", this.apiKey)
+      const response: BaseResponse = await getJson({
+        engine: "google",
+        api_key: this.apiKey,
+        q: query,
+        num: numResults,
+        gl: 'us' // Set Google location to US
       });
 
-      const organicResults = response.data.organic_results || [];
+      const organicResults = response.organic_results || [];
       return organicResults.map((result: any, index: number) => ({
         position: index + 1,
         title: result.title,

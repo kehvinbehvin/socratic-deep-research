@@ -1,19 +1,25 @@
-import { Entity, Column, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Topic } from './Topic';
 import { Review } from './Review';
+import { Page } from './Page';
 
 @Entity()
 export class CrawlResult extends BaseEntity {
-  @Column('text')
+  @Column()
   url: string;
-
-  @ManyToOne(() => Topic, topic => topic.searchResults)
-  topic: Topic;
 
   @Column('decimal', { precision: 4, scale: 2 })
   reliability: number;
 
-  @OneToOne(() => Review, review => review.crawlResult, { nullable: true })
-  review: Review;
+  @ManyToOne(() => Topic, { nullable: false })
+  topic: Topic;
+
+  @OneToOne(() => Page, page => page.crawlResult)  
+  page: Page;
+
+  @OneToMany(() => Review, review => review.crawlResult, {
+    cascade: ['insert', 'update']
+  }) 
+  reviews: Review[];
 } 

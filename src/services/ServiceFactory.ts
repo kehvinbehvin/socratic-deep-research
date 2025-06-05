@@ -52,14 +52,16 @@ export class ServiceFactory {
       ServiceFactory.instance = new ServiceFactory();
       ServiceFactory.instance.dataSource = dataSource;
       await ServiceFactory.instance.queueService.initialize();
-      
+
       ServiceFactory.instance.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
       ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
+      
       ServiceFactory.instance.s3Service = new S3Service(
-        process.env.AWS_REGION || 'us-east-1',
+        process.env.S3_BUCKET_REGION || 'ap-southeast-1',
         process.env.S3_BUCKET || 'socratic-learning'
       );
       ServiceFactory.instance.fireCrawlService = new FireCrawlService(
+        ServiceFactory.instance.dataSource,
         ServiceFactory.instance.s3Service,
         ServiceFactory.instance.loggerService,
       );
@@ -108,7 +110,8 @@ export class ServiceFactory {
     return new QueryPreparationHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
+      this.serpApiService,
+      this.s3Service
     );
   }
 
@@ -124,7 +127,8 @@ export class ServiceFactory {
     return new CrawlResultHandler(
       this.queueService,
       this.dataSource,
-      this.s3Service
+      this.s3Service,
+      this.langChainService
     );
   }
 
@@ -132,7 +136,6 @@ export class ServiceFactory {
     return new ReviewHandler(
       this.queueService,
       this.dataSource,
-      this.openAIService
     );
   }
 
@@ -192,7 +195,8 @@ export class ServiceFactory {
       this.queueService,
       this.dataSource,
       this.fireCrawlService,
-      this.langChainService
+      this.langChainService,
+      this.s3Service
     );
   }
 } 

@@ -12,9 +12,6 @@ import { Clarification } from '../entities/Clarification';
 const ClarificationOutputSchema = z.object({
   clarifications: z.array(z.object({
     content: z.string(),
-    type: z.enum(['methodology', 'metrics', 'integration', 'comparison', 'limitation']),
-    importance: z.number().min(1).max(5),
-    rationale: z.string()
   }))
 });
 
@@ -73,30 +70,21 @@ export class ReflectionHandler extends QueueHandler<ReflectionStageData, Clarifi
     }
 
     const systemPrompt = `You are a Socratic tutor analyzing student reflections to identify areas that need clarification.
-Your task is to generate specific points that require further investigation or clarification.
-Each clarification should:
-- Focus on a specific aspect that needs deeper understanding
-- Be categorized by type:
-  * methodology (how something works)
-  * metrics (how to measure or evaluate)
-  * integration (how things work together)
-  * comparison (how it relates to alternatives)
-  * limitation (what are the constraints)
-- Include a clear rationale for why this clarification is important
-- Rate the importance (1-5) of resolving this clarification
+Your task is to generate specific points that require further investigation or clarification based on the reflections and questions.
 
-Generate 5 clarifications that will help deepen understanding of the topic.`;
+For each clarification point:
+1. Focus on a specific aspect that needs deeper understanding
+2. Include a clear rationale for why this clarification is important
+3. Phrase it as a clear, concise statement or question
+
+Generate 5 clarifications that will help deepen understanding of the topic.
+
+Remember to format your response as a JSON object with an array of clarification objects, each containing a 'content' field with the clarification text.`;
 
     const userPrompt = `Based on these reflections about {topic}:
 {reflections}
 
-Identify key points that need clarification.
-Format your response as a JSON object with an array of clarifications.
-Each clarification should have:
-- content: the specific point needing clarification
-- type: the category of clarification needed
-- importance: number from 1-5 indicating how critical this clarification is
-- rationale: why this clarification is important for understanding the topic`;
+Generate clarification points that will help deepen understanding.`;
 
     const result = await this.langChainService.generateStructured({
       systemPrompt,

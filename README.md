@@ -10,10 +10,12 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 - **Database**: PostgreSQL 15
 - **ORM**: TypeORM
 - **AI**: LangChain with OpenAI
+- **Search**: SerpApi for web search
 - **Web Interface**: Express with EJS templates
 - **Queue**: ElasticMQ (SQS compatible)
 - **Monitoring**: Custom metrics dashboard
 - **Type Safety**: Zod schemas
+- **Storage**: AWS S3 for search results
 
 ## Project Structure
 
@@ -25,18 +27,22 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 │   │   ├── Reflection.ts
 │   │   ├── Clarification.ts
 │   │   ├── QueryPreparation.ts
-│   │   └── SearchResult.ts
+│   │   ├── SearchResult.ts
+│   │   └── CrawlRequest.ts
 │   ├── handlers/       # Queue handlers
 │   │   ├── TopicHandler.ts
 │   │   ├── QuestionHandler.ts
 │   │   ├── ReflectionHandler.ts
 │   │   ├── ClarificationHandler.ts
-│   │   └── QueryPreparationHandler.ts
+│   │   ├── QueryPreparationHandler.ts
+│   │   └── SearchHandler.ts
 │   ├── services/       # Core services
 │   │   ├── OpenAIService.ts
 │   │   ├── QueueService.ts
 │   │   ├── LoggerService.ts
-│   │   └── MonitoringService.ts
+│   │   ├── MonitoringService.ts
+│   │   ├── SerpApiService.ts
+│   │   └── FireCrawlService.ts
 │   ├── web/           # Web interface
 │   │   ├── routes/
 │   │   ├── views/
@@ -57,6 +63,12 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 - Progressive learning paths
 - Automated follow-up questions
 
+### Web Search & Content Analysis
+- Intelligent web search using SerpApi
+- Content crawling and analysis
+- S3 storage for search results
+- Webhook integration for async processing
+
 ### Web Interface
 - Real-time metrics dashboard
 - Queue monitoring
@@ -69,6 +81,8 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 3. **Reflection Analysis**: Understanding assessment
 4. **Clarification**: Targeted follow-up questions
 5. **Query Preparation**: Research guidance
+6. **Search**: Web content discovery
+7. **Crawl**: Deep content analysis
 
 ### Type Safety
 - Zod schemas for AI responses
@@ -88,17 +102,39 @@ npm install
 2. **Environment Setup**
 Create a `.env` file:
 ```env
-OPENAI_API_KEY=your_api_key
+# API Keys
+OPENAI_API_KEY=your_openai_api_key
+SERP_API_KEY=your_serpapi_key
+FIRECRAWL_API_KEY=your_firecrawl_key
+
+# Database
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=myapp
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
+
+# AWS Configuration
+AWS_REGION=us-east-1
+S3_BUCKET=your-bucket-name
+
+# Queue Configuration
+QUEUE_ENDPOINT=http://localhost:9324
+QUEUE_REGION=elasticmq
+QUEUE_ACCESS_KEY_ID=root
+QUEUE_SECRET_ACCESS_KEY=root
+
+# Webhook Configuration
+FC_WEBHOOK=your_webhook_url
 ```
 
 3. **Start Services**
 ```bash
+# Start core services
 npm run dev
+
+# Expose webhook endpoint (in a separate terminal)
+npm run expose:webhook
 ```
 
 ## Development Scripts
@@ -113,6 +149,27 @@ npm run dev
   - `npm run services:down` - Stop services
   - `npm run services:clean` - Clean volumes
 
+- **Webhook Development**
+  - `npm run expose:webhook` - Expose local webhook endpoint via ngrok
+
+## Webhook Setup
+
+The platform uses webhooks for asynchronous processing of crawled content. To set up webhooks:
+
+1. Start your local server:
+```bash
+npm run dev
+```
+
+2. In a separate terminal, expose your webhook endpoint:
+```bash
+npm run expose:webhook
+```
+
+3. Use the generated ngrok URL as your webhook endpoint in the SerpApi dashboard
+
+The webhook endpoint will receive crawl results and process them automatically.
+
 ## Monitoring
 
 The platform includes a web-based monitoring dashboard at `/metrics` showing:
@@ -120,15 +177,17 @@ The platform includes a web-based monitoring dashboard at `/metrics` showing:
 - Error rates and types
 - Processing times
 - Learning progress metrics
+- Search and crawl statistics
 
 ## Production Deployment
 
 Before deploying:
 1. Configure proper AWS credentials
 2. Set up production database
-3. Configure OpenAI API keys
+3. Configure API keys (OpenAI, SerpApi, FireCrawl)
 4. Review resource allocations
 5. Set up monitoring alerts
+6. Configure production webhook endpoints
 
 ## Contributing
 

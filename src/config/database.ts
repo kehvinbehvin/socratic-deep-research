@@ -6,8 +6,10 @@ import {
   Clarification,
   QueryPreparation,
   SearchResult,
+  CrawlRequest,
   CrawlResult,
-  Review
+  Review,
+  Page
 } from '../entities';
 
 const AppDataSource = new DataSource({
@@ -26,8 +28,10 @@ const AppDataSource = new DataSource({
     Clarification,
     QueryPreparation,
     SearchResult,
+    CrawlRequest,
     CrawlResult,
-    Review
+    Review,
+    Page
   ],
   migrations: ['src/migrations/*.ts'],
 });

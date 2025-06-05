@@ -15,8 +15,6 @@ import { GenericQueueDTO } from '../types/dtos';
 const QuestionOutputSchema = z.object({
   questions: z.array(z.object({
     content: z.string(),
-    type: z.enum(['principle', 'application', 'challenge', 'evolution', 'ethics']),
-    reasoning: z.string()
   }))
 });
 
@@ -57,28 +55,20 @@ export class TopicHandler extends QueueHandler<TopicStageData, QuestionStageData
       where: { id: input.core.topicId }
     });
 
-    const systemPrompt = `You are a Socratic tutor helping students explore topics deeply through thoughtful questions.
-Your task is to generate 5 insightful questions about the given topic.
-Each question should:
-- Challenge assumptions
-- Encourage critical thinking
-- Promote deeper understanding
-- Be specific and focused
-- Include clear reasoning for why it's important
+    const systemPrompt = `
+    You are a Socratic learning assistant helping someone deeply understand a practical topic. 
+    The user will provided a goal or task they want to achieve in the real world.
+    Your task is to generate 5 Socratic questions that will help the user achieve their goal.
 
-Categorize each question as one of:
-- principle (foundational concepts)
-- application (practical use)
-- challenge (common difficulties)
-- evolution (how it changes over time)
-- ethics (moral/social implications)`;
+    Your job is to generate a list of open-ended, probing, and clarifying questions that encourage the user to think critically about how to perform the task. 
+    These questions should span the full process of completing the task—from preparation to execution to troubleshooting—without assuming prior knowledge.
+    `;
 
-    const userPrompt = `Generate 5 Socratic questions about: {topic}
+    const userPrompt = `Generate 5 questions about the following topic: {topic}
 Format your response as a JSON object with an array of questions.
 Each question should have:
 - content: the actual question
-- type: the category it belongs to
-- reasoning: why this question is important for understanding the topic`;
+`;
 
     const result = await this.langChainService.generateStructured({
       systemPrompt,

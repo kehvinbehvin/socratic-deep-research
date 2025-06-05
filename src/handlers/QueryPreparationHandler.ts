@@ -1,35 +1,23 @@
 import { QueryPreparation } from '../entities/QueryPreparation';
 import { QueueService } from '../services/QueueService';
-import { OpenAIService } from '../services/OpenAIService';
 import { DataSource } from 'typeorm';
 import { GenericQueueDTO, QueryPreparationStageData, SearchResultStageData } from '../types/dtos';
 import { QueueHandler } from './QueueHandler';
 import { SearchResult } from '../entities/SearchResult';
 import { Topic } from '../entities';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import axios from 'axios';
-
-interface SerpApiResponse {
-  search_metadata: {
-    id: string;
-    status: string;
-  };
-  organic_results: Array<{
-    position: number;
-    title: string;
-    link: string;
-    snippet: string;
-  }>;
-}
+import { SerpApiService } from '../services/SerpApiService';
+import { SerpApiResult } from '../services/SerpApiService';
+import { S3Service } from '../services/S3Service';
 
 export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageData, SearchResultStageData, SearchResult> {
-  private openAIService: OpenAIService;
-  private s3Client: S3Client;
+  private serpApiService: SerpApiService;
+  private s3Service: S3Service;
 
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
-    openAIService: OpenAIService
+    serpApiService: SerpApiService,
+    s3Service: S3Service
   ) {
     super(
       queueService,
@@ -38,13 +26,8 @@ export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageD
       'QUERY_PREPARATION',
       'SEARCH'
     );
-    this.openAIService = openAIService;
-    this.s3Client = new S3Client({});
-  }
-
-  private async getSerpApiKey(): Promise<string> {
-    // TODO: Implement your secret retrieval logic here
-    return process.env.SERPAI_API_KEY || '';
+    this.serpApiService = serpApiService;
+    this.s3Service = s3Service;
   }
 
   private generateKey(query: string, timestamp: string, location: string): string {
@@ -54,38 +37,15 @@ export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageD
     return `serp/${sanitizedQuery}_${sanitizedLocation}_${timestamp}`;
   }
 
-  private async storeSerpResults(key: string, results: SerpApiResponse): Promise<void> {
+  private async storeSerpResults(key: string, results: SerpApiResult[]): Promise<void> {
     try {
       console.log('Storing SERP results in S3 for key:', key);
-      const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: `${key}.json`,
-        Body: JSON.stringify(results),
-        ContentType: 'application/json',
-      };
-
-      await this.s3Client.send(new PutObjectCommand(params));
+      await this.s3Service.uploadJson(key, results);
     } catch (e) {
       console.error('[storeSerpResults]', e);
       // Don't throw - we want to continue even if storage fails
     }
   }
-
-  private async searchWithSerpApi(query: string, location: string): Promise<SerpApiResponse> {
-    console.log('Searching with SERP API for query:', query);
-    const serpKey = await this.getSerpApiKey();
-    const response = await axios.get('https://serpapi.com/search', {
-      params: {
-        engine: 'google',
-        api_key: serpKey,
-        q: query,
-        location: location,
-      }
-    });
-
-    return response.data;
-  }
-
   protected async transformQueueMessage(entities: SearchResult[], prevMessage: GenericQueueDTO<QueryPreparationStageData>): Promise<GenericQueueDTO<SearchResultStageData>> {
     return {
       core: {
@@ -94,7 +54,7 @@ export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageD
       },
       previousStages: {
         ...prevMessage.previousStages,
-        queryPreparations: entities.map(entity => entity.id)
+        searchResults: entities.map(entity => entity.id)
       },
       currentStage: {
         searchResults: entities.map(entity => entity.url)
@@ -118,17 +78,17 @@ export class QueryPreparationHandler extends QueueHandler<QueryPreparationStageD
       const location = 'United States'; // Default location
       
       // Perform SERP API search
-      const searchResponse = await this.searchWithSerpApi(query, location);
+      const searchResponse: SerpApiResult[] = await this.serpApiService.search(query, 1);
       
       // Store results in S3 for future reference
       const key = this.generateKey(query, new Date().toISOString(), location);
-      await this.storeSerpResults(key, searchResponse);
+      await this.storeSerpResults(key,  searchResponse);
 
       // Create and save search result entities
       const searchResults = await Promise.all(
-        searchResponse.organic_results.map(async (result) => {
+        searchResponse.map(async (result) => {
           const searchResult = new SearchResult();
-          searchResult.url = result.link;
+          searchResult.url = result.url;
           searchResult.topic = topic;
           
           return await this.dataSource.getRepository(SearchResult).save(searchResult);

@@ -5,7 +5,7 @@ import { ClarificationStageData, GenericQueueDTO, QueryPreparationStageData } fr
 import { QueueHandler } from './QueueHandler';
 import { LangChainService } from '../services/LangChainService';
 import { z } from 'zod';
-import { Topic } from '../entities';
+import { Reflection, Topic } from '../entities';
 import { QueryPreparation } from '../entities/QueryPreparation';
 
 // Define the schema for LLM output
@@ -56,35 +56,39 @@ export class ClarificationHandler extends QueueHandler<ClarificationStageData, Q
     console.log('Processing input', { input });
     // Get the topic and its clarifications
     const topic = await this.dataSource.getRepository(Topic).findOneOrFail({ 
-      where: { id: input.core.topicId }
+      where: { id: input.core.topicId },
+      relations: ['clarifications', 'reflections']
     });
 
-    if (!input.previousStages.clarifications || input.previousStages.clarifications.length === 0) {
-      throw new Error('No clarifications found in previous stage');
-    }
+    const systemPrompt = `You are a search query optimization expert. You are continuing a Socratic dialogue to help someone understand how to do a real-world task
+    The user has a goal or task they want to achieve in the real world.
 
-    const clarifications = await this.dataSource.getRepository(Clarification).findByIds(
-      input.previousStages.clarifications
-    );
+    Given a topic, the user has already thought about questions that need to be answered,
+    - about questions that need to be answered
+    - about reflections that need to be considered
+    - about clarifications that need to be made
+    
+    Your job is to help the user achieve their goal by generating search queries that will help them find the information they need based
+    on all these points.  
 
-    if (clarifications.length === 0) {
-      throw new Error('Could not find any clarifications with the provided IDs');
-    }
+    Your task is to understand/analyse all these points and generate search queries that will help the user find the information they need.
 
-    const systemPrompt = `You are a search query optimization expert.
-Your task is to convert clarification points into effective search queries.
-For each query:
-- Focus on finding specific, factual information
-- Include relevant technical terms and keywords
-- Ensure queries are specific enough to return high-quality results
-- Extract a key keyword that represents the main concept
+    For each query:
+    - Focus on finding specific, factual information
+    - Include relevant technical terms and keywords
+    - Ensure queries are specific enough to return high-quality results
+    - Extract a key keyword that represents the main concept
 
-Generate one search query for each clarification point.`;
+    `;
 
-    const userPrompt = `Based on these clarification points about {topic}:
-{clarifications}
+    const userPrompt = `
+Topic: {topic}
 
-Generate search queries to find detailed information about each point.
+Clarifications: {clarifications}
+
+Reflections: {reflections}
+
+Generate search queries based on the above points.
 Format your response as a JSON object with an array of queries.
 Each query object should have:
 - query: a well-formed search query that will return relevant results
@@ -96,9 +100,14 @@ Each query object should have:
       schema: QueryPreparationOutputSchema,
       input: { 
         topic: topic.content,
-        clarifications: clarifications.map(c => c.content).join('\n\n')
+        clarifications: topic.clarifications.map(c => c.content).join('\n\n'),
+        reflections: topic.reflections.map(r => r.content).join('\n\n')
       }
     });
+
+    console.log('Result', { result });
+
+    result.queries = result.queries.slice(0, 1);
 
     // Create and save QueryPreparation entities
     const queryPreparations = await Promise.all(

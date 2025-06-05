@@ -3,6 +3,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
+import { StructuredOutputParser } from "langchain/output_parsers";
 
 export class LangChainService {
   private model: ChatOpenAI;
@@ -24,16 +25,15 @@ export class LangChainService {
   }): Promise<z.infer<T>> {
     try {
       const prompt = ChatPromptTemplate.fromMessages([
-        ["system", params.systemPrompt],
+        ["system", `${params.systemPrompt}`],
         ["human", params.userPrompt],
       ]);
 
-      const outputParser = new JsonOutputParser<z.infer<T>>();
+      const modelWithStructure = this.model.withStructuredOutput(params.schema);
 
       const chain = RunnableSequence.from([
         prompt,
-        this.model,
-        outputParser,
+        modelWithStructure,
       ]);
 
       console.log('Generating response from LLM', new Date().toISOString());

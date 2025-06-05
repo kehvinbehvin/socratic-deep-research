@@ -6,4 +6,6 @@ export * from './Clarification';
 export * from './QueryPreparation';
 export * from './SearchResult';
 export * from './CrawlResult';
+export * from './CrawlRequest';
 export * from './Review'; 
+export * from './Page';
