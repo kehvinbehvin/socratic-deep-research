@@ -1,6 +1,5 @@
 import { DataSource } from 'typeorm';
 import { QueueService } from './QueueService';
-import { OpenAIService } from './OpenAIService';
 import { SerpApiService } from './SerpApiService';
 import { FireCrawlService } from './FireCrawlService';
 import { S3Service } from './S3Service';
@@ -26,7 +25,6 @@ export class ServiceFactory {
   private static instance: ServiceFactory | null = null;
   private queueService: QueueService;
   private dataSource: DataSource;
-  private openAIService: OpenAIService;
   private serpApiService: SerpApiService;
   private fireCrawlService: FireCrawlService;
   private s3Service: S3Service;
@@ -53,7 +51,6 @@ export class ServiceFactory {
       await ServiceFactory.instance.queueService.initialize();
       ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091');
 
-      ServiceFactory.instance.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
       ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '', ServiceFactory.instance.centralizedMetrics);
 
       
@@ -174,10 +171,6 @@ export class ServiceFactory {
 
   public getDataSource(): DataSource {
     return this.dataSource;
-  }
-
-  public getOpenAIService(): OpenAIService {
-    return this.openAIService;
   }
 
   public getSerpApiService(): SerpApiService {
