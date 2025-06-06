@@ -5,4 +5,5 @@ export const handler = createLambdaHandler({
     const studies = await serviceFactory.getStudyService();
     return await studies.getStudies()
   },
+  handlerName: 'getStudiesHandler',
 }); 

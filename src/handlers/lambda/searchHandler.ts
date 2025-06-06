@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const searchHandler = serviceFactory.getSearchHandler();
     return searchHandler.handleQueueMessage(input);
   },
+  handlerName: 'searchHandler',
 }); 

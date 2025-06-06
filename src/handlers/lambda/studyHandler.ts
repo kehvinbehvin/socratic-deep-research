@@ -7,4 +7,5 @@ export const handler = createLambdaHandler({
     const studyHandler = serviceFactory.getStudyHandler();
     return studyHandler.handleAPIEvent(input);
   },
+  handlerName: 'studyHandler',
 }); 

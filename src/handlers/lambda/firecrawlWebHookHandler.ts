@@ -7,4 +7,5 @@ export const handler = createLambdaHandler({
     const fireCrawlWebhookHandler = serviceFactory.getFireCrawlWebhookHandler();
     return fireCrawlWebhookHandler.handleAPIEvent(input);
   },
+  handlerName: 'fireCrawlWebhookHandler',
 }); 

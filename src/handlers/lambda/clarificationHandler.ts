@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const clarificationHandler = serviceFactory.getClarificationHandler();
     return clarificationHandler.handleQueueMessage(input);
   },
+  handlerName: 'clarificationHandler',
 }); 

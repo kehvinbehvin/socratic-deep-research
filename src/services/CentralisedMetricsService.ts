@@ -8,16 +8,12 @@ export class CentralizedMetricsService {
   private static instance: CentralizedMetricsService;
   private readonly registry: Registry;
   private readonly metrics: Map<string, Gauge<string> | Counter<string> | Histogram<string>>;
-  private readonly pushgateway;
   private readonly pushgatewayUrl: string;
 
   private constructor(private readonly logger: LoggerService, pushgatewayUrl: string) {
     this.registry = new Registry();
     this.metrics = new Map();
     this.pushgatewayUrl = pushgatewayUrl;
-    this.pushgateway = new Pushgateway(this.pushgatewayUrl, {
-        timeout: 5000,
-      }, this.registry);
   }
 
   static getInstance(logger: LoggerService, pushgatewayUrl: string): CentralizedMetricsService {
@@ -86,14 +82,32 @@ export class CentralizedMetricsService {
     }
   }
 
-  async pushMetrics(jobName: string): Promise<void> {
+  async pushMetrics(jobName: string, labels: Record<string, string> = {}): Promise<void> {
     try {
-      await this.pushgateway.pushAdd({ jobName });
-      this.logger.info('Successfully pushed metrics to Pushgateway', { jobName });
+      // Collect metrics as raw Prometheus exposition text
+      const metricsText = await this.registry.metrics();
+
+      // Construct URL with jobName and labels as path params
+      this.logger.info('Pushing metrics to prom-aggregation-gateway', { pushgatewayUrl: this.pushgatewayUrl });
+      let url = `${this.pushgatewayUrl.replace(/\/+$/, '')}/metrics/job/${encodeURIComponent(jobName)}`;
+      for (const [label, value] of Object.entries(labels)) {
+        url += `/${encodeURIComponent(label)}/${encodeURIComponent(value)}`;
+      }
+
+      this.logger.info('Pushing metrics to prom-aggregation-gateway', { url });
+      this.logger.info('Metrics text', { metricsText });
+
+      await axios.post(url, metricsText, {
+        headers: { 'Content-Type': 'text/plain' },
+        timeout: 5000,
+      });
+
+      this.logger.info('Successfully pushed metrics to prom-aggregation-gateway', { jobName, labels });
     } catch (error) {
-      this.logger.error('Failed to push metrics to Pushgateway', {
+      this.logger.error('Failed to push metrics to prom-aggregation-gateway', {
         error: error instanceof Error ? error.stack : String(error),
-        jobName
+        jobName,
+        labels,
       });
       throw error;
     }

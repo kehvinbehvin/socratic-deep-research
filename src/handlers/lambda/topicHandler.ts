@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const topicHandler = serviceFactory.getTopicHandler();
     return topicHandler.handleQueueMessage(input);
   },
+  handlerName: 'topicHandler',
 }); 

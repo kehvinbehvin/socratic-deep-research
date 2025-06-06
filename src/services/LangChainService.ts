@@ -10,10 +10,12 @@ export class LangChainService {
   private model: ChatOpenAI;
   private logger: LoggerService;
   private metrics: CentralizedMetricsService;
+  private modelName: string;
   
   constructor(logger: LoggerService, metrics: CentralizedMetricsService) {
+    this.modelName = "gpt-4o-mini";
     this.model = new ChatOpenAI({
-      modelName: "gpt-4o-mini",
+      modelName: this.modelName,
       openAIApiKey: process.env.OPENAI_API_KEY,
       temperature: 0.7,
       maxTokens: 2000,
@@ -56,7 +58,7 @@ export class LangChainService {
       const tokens = response.usage?.total_tokens;
       this.metrics.observe(MetricDefinitions.usage.tokens, tokens, {
         service: service,
-        endpoint: endpoint,
+        model: this.modelName,
         operation: 'langchain_generate_tokens',
       });
 
@@ -67,7 +69,7 @@ export class LangChainService {
         operation: 'langchain_generate_structured_success',
       });
 
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,
@@ -79,7 +81,7 @@ export class LangChainService {
 
       return validatedResponse;
     } catch (error) {
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,

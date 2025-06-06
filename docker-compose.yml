@@ -75,10 +75,10 @@ services:
       - backend
     restart: unless-stopped
 
-  pushgateway:
-    image: prom/pushgateway:latest
+  prom-aggregation-gateway:
+    image: ghcr.io/zapier/prom-aggregation-gateway:latest
     ports:
-      - "9091:9091"
+      - "9091:80"
     networks:
       - backend
     restart: unless-stopped
@@ -86,7 +86,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3002:3000"
+      - "3003:3000"
     volumes:
       - ./grafana:/var/lib/grafana
     networks:
@@ -94,7 +94,7 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
-      - pushgateway
+      - prom-aggregation-gateway
 
 networks:
   backend:

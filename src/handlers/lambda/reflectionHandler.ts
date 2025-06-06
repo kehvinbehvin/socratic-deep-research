@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const reflectionHandler = serviceFactory.getReflectionHandler();
     return reflectionHandler.handleQueueMessage(input);
   },
+  handlerName: 'reflectionHandler',
 }); 

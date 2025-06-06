@@ -6,12 +6,12 @@ import { MetricDefinitions } from '../metrics/definitions';
 
 export interface HandlerConfig<T> {
   handler: (input: T , serviceFactory: ServiceFactory) => Promise<any>;
+  handlerName: string;
 }
 
-export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: APIGatewayProxyEvent | SQSEvent) => Promise<any> {
+export function createLambdaHandler<T>({ handler, handlerName }: HandlerConfig<T>): (event: APIGatewayProxyEvent | SQSEvent) => Promise<any> {
   return async (event) => {
     const startTime = Date.now();
-    let handlerName = handler.name || 'unknown';
     let eventType = 'Records' in event ? 'sqs' : 'api';
 
     // Initialize database connection

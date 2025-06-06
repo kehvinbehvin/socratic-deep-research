@@ -49,7 +49,7 @@ export class ServiceFactory {
       ServiceFactory.instance = new ServiceFactory();
       ServiceFactory.instance.dataSource = dataSource;
       await ServiceFactory.instance.queueService.initialize();
-      ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091');
+      ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, 'http://localhost:9091');
 
       ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '', ServiceFactory.instance.centralizedMetrics);
 
@@ -71,10 +71,13 @@ export class ServiceFactory {
       
       ServiceFactory.instance.qdrantVectorStoreService = new QdrantVectorStoreService(
         ServiceFactory.instance.loggerService,
-        process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091',
         process.env.QDRANT_URL || 'http://localhost:6333',
         process.env.OPENAI_API_KEY || '',
-      );
+        ServiceFactory.instance.centralizedMetrics,
+        process.env.QDRANT_COLLECTION_NAME || 'documents',
+        process.env.QDRANT_EMBEDDING_MODEL || 'text-embedding-3-small'
+      )
+
       ServiceFactory.instance.usageTrackingService = new UsageTrackingService(
         ServiceFactory.instance.loggerService,
         ServiceFactory.instance.centralizedMetrics,

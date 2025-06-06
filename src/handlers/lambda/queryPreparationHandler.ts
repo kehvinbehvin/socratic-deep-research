@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const queryPreparationHandler = serviceFactory.getQueryPreparationHandler();
     return queryPreparationHandler.handleQueueMessage(input);
   },
+  handlerName: 'queryPreparationHandler',
 }); 

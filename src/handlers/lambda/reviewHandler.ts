@@ -8,4 +8,5 @@ export const handler = createLambdaHandler({
     const reviewHandler = serviceFactory.getReviewHandler();
     return reviewHandler.handleQueueMessage(input);
   },
+  handlerName: 'reviewHandler',
 }); 

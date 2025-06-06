@@ -15,9 +15,9 @@ export class QdrantVectorStoreService {
   
   constructor(
     private readonly loggerService: LoggerService,
-    private readonly pushgatewayUrl: string,
     qdrantUrl: string,
     openaiApiKey: string,
+    metrics: CentralizedMetricsService,
     collectionName = 'documents',
     embeddingModel = 'text-embedding-3-small',
   ) {
@@ -25,7 +25,7 @@ export class QdrantVectorStoreService {
     this.openai = new OpenAI({ apiKey: openaiApiKey });
     this.collectionName = collectionName;
     this.embeddingModel = embeddingModel;
-    this.metrics = CentralizedMetricsService.getInstance(loggerService, this.pushgatewayUrl);
+    this.metrics = metrics;
 
     this.loggerService.info('QdrantVectorStoreService initialized', {
       collectionName,
@@ -52,7 +52,7 @@ export class QdrantVectorStoreService {
       }
 
       // Record metrics
-      const duration = (Date.now() - startTime) / 1000; // Convert to seconds
+      const duration = (Date.now() - startTime)
       this.metrics.observe(
         MetricDefinitions.vectorStore.embeddingDuration,
         duration,
@@ -95,7 +95,7 @@ export class QdrantVectorStoreService {
         ],
       });
 
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(
         MetricDefinitions.vectorStore.indexingDuration,
         duration,

@@ -61,7 +61,7 @@ export class FireCrawlService {
       });
 
       // Record a successful API call
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,
@@ -87,7 +87,7 @@ export class FireCrawlService {
       return data.id;
 
     } catch (error) {
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,
@@ -129,7 +129,7 @@ export class FireCrawlService {
         },
       });
 
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,
@@ -173,7 +173,7 @@ export class FireCrawlService {
       return crawlId;
 
     } catch (error) {
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (Date.now() - startTime)
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
         service: service,
         endpoint: endpoint,
