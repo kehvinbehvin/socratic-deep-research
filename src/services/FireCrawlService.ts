@@ -68,7 +68,8 @@ export class FireCrawlService {
         status: 'success'
       });
 
-      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+      // We don't want to increment the api calls metric for successful calls since we already did that in the attempt
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 0, {
         service: service,
         operation: 'firecrawl_crawl_request_success',
         endpoint: endpoint,

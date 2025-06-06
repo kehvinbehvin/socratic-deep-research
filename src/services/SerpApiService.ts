@@ -44,7 +44,8 @@ export class SerpApiService {
         gl: location // Set Google location to US
       });
 
-      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+      // We don't want to increment the api calls metric for successful calls since we already did that in the attempt
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 0, {
         service: service,
         operation: 'serpapi_search_success',
         endpoint: endpoint

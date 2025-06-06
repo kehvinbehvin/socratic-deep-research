@@ -64,7 +64,10 @@ export class ServiceFactory {
         ServiceFactory.instance.loggerService,
         ServiceFactory.instance.centralizedMetrics
       );
-      ServiceFactory.instance.langChainService = new LangChainService();
+      ServiceFactory.instance.langChainService = new LangChainService(
+        ServiceFactory.instance.loggerService,
+        ServiceFactory.instance.centralizedMetrics
+      );
       
       ServiceFactory.instance.qdrantVectorStoreService = new QdrantVectorStoreService(
         ServiceFactory.instance.loggerService,
