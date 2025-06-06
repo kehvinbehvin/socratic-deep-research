@@ -97,7 +97,35 @@ export const TotalCostMetrics: MetricDefinition = {
     type: 'gauge' as const,
     labelNames: ['period'] as const
 }
-  
+
+export const LambdaInvocationsMetrics: MetricDefinition = {
+    name: 'lambda_invocations_total',
+    help: 'Total number of Lambda invocations',
+    type: 'counter',
+    labelNames: ['handler', 'type']
+}
+
+export const LambdaDurationMetrics: MetricDefinition = {
+    name: 'lambda_duration_seconds',
+    help: 'Duration of Lambda invocations',
+    type: 'histogram',
+    labelNames: ['handler', 'type', 'status']
+}
+
+export const LambdaErrorsMetrics: MetricDefinition = {
+    name: 'lambda_errors_total',
+    help: 'Total number of errors in Lambda invocations',
+    type: 'counter',
+    labelNames: ['handler', 'type', 'error_type']
+}
+
+export const LambdaSuccessMetrics: MetricDefinition = {
+    name: 'lambda_success_total',
+    help: 'Total number of successful Lambda invocations',
+    type: 'counter',
+    labelNames: ['handler', 'type']
+}
+
 export const MetricDefinitions = {
     // Vector Store Metrics
     vectorStore: {
@@ -121,6 +149,14 @@ export const MetricDefinitions = {
         tokens: TokensMetrics,
         cost: CostMetrics,
         totalCost: TotalCostMetrics,
+    },
+
+    // Lambda Metrics
+    lambda: {
+        invocations: LambdaInvocationsMetrics,
+        duration: LambdaDurationMetrics,
+        errors: LambdaErrorsMetrics,
+        success: LambdaSuccessMetrics,
     },
 
     // Error Metrics

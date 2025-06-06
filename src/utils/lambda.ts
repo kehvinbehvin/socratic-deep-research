@@ -1,8 +1,9 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, SQSEvent } from 'aws-lambda';
+import { APIGatewayProxyEvent, SQSEvent } from 'aws-lambda';
 import { initializeDatabase } from '../config/database';
 import { ServiceFactory } from '../services/ServiceFactory';
 import { LoggerService } from '../services/LoggerService';
 import { z } from 'zod';
+import { MetricDefinitions } from '../metrics/definitions';
 
 const logger = LoggerService.getInstance();
 
@@ -13,6 +14,10 @@ export interface HandlerConfig<T> {
 export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: APIGatewayProxyEvent | SQSEvent) => Promise<any> {
   return async (event) => {
     let dataSource;
+    const startTime = Date.now();
+    let handlerName = handler.name || 'unknown';
+    let eventType = 'Records' in event ? 'sqs' : 'api';
+
     try {
       // Initialize database connection
       dataSource = await initializeDatabase();
@@ -21,6 +26,14 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
       // Initialize services
       const serviceFactory = await ServiceFactory.initialize(dataSource);
       logger.info('Services initialized');
+
+      // Initialize usage tracking
+      const metrics = serviceFactory.getCentralizedMetrics();
+      // Record invocation
+      metrics.observe(MetricDefinitions.lambda.invocations, 1, {
+        handler: handlerName,
+        type: eventType
+      });
 
       // Check for SQS event or API Gateway event
       let input;
@@ -45,6 +58,22 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
       const result = await handler(input, serviceFactory);
       logger.info('Result', { content_size: JSON.stringify(result).length });
 
+      // Record duration and success
+      const duration = Date.now() - startTime;
+      metrics.observe(MetricDefinitions.lambda.duration, duration / 1000, {
+        handler: handlerName,
+        type: eventType,
+        status: 'success'
+      });
+
+      metrics.observe(MetricDefinitions.lambda.success, 1, {
+        handler: handlerName,
+        type: eventType
+      });
+
+      // Push metrics
+      await metrics.pushMetrics('lambda_metrics');
+
       // Clean up
       await dataSource.destroy();
 
@@ -59,6 +88,32 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
       logger.error('Lambda handler error', {
         error: error instanceof Error ? error.stack : String(error),
       });
+
+      // Initialize database and services
+      const dataSource = await initializeDatabase();
+      const serviceFactory = await ServiceFactory.initialize(dataSource);
+
+      const metrics = serviceFactory.getCentralizedMetrics();
+      if (metrics) {
+        const duration = Date.now() - startTime;
+
+        // Record duration
+        metrics.observe(MetricDefinitions.lambda.duration, duration / 1000, {
+          handler: handlerName,
+          type: eventType,
+          status: 'error'
+        });
+
+        // Record errors
+        metrics.observe(MetricDefinitions.lambda.errors, 1, {
+          handler: handlerName,
+          type: eventType,
+          error_type: error instanceof z.ZodError ? 'validation' : 'internal'
+        });
+      }
+
+      await metrics.pushMetrics('lambda_metrics');
+
 
       if (dataSource) {
         await dataSource.destroy();
