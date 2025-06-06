@@ -1,13 +1,14 @@
 // scripts/test-qdrant.ts
-import { QdrantVectorStoreService } from '../src/services/QdrantVectorStoreService';
 import { LoggerService } from '../src/services/LoggerService';
 import { initializeDatabase } from '../src/config/database';
 import { ServiceFactory } from '../src/services/ServiceFactory';
-import { CentralizedMetricsService } from '../src/services/CentralisedMetricsService';
 import dotenv from 'dotenv';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { QdrantVectorStoreService } from '../src/services/QdrantVectorStoreService';
 
 dotenv.config();
+
+const TEST_COLLECTION = 'test_collection';
 
 async function cleanupCollection(qdrantUrl: string, collectionName: string) {
   const client = new QdrantClient({ url: qdrantUrl });
@@ -26,8 +27,17 @@ async function testQdrantService() {
   // Initialize services
   const dataSource = await initializeDatabase();
   const serviceFactory = await ServiceFactory.initialize(dataSource);
-  const qdrantService = serviceFactory.getQdrantVectorStoreService();
   const logger: LoggerService = serviceFactory.getLoggerService();
+
+  // Initialize QdrantVectorStoreService with test collection
+  const qdrantService = new QdrantVectorStoreService(
+    logger,
+    process.env.PUSHGATEWAY_URL || 'http://localhost:9091',
+    process.env.QDRANT_URL || 'http://localhost:6333',
+    process.env.OPENAI_API_KEY!,
+    TEST_COLLECTION,
+    'text-embedding-3-small'
+  );
 
   try {
     // Test 1: Index some sample texts
@@ -47,16 +57,32 @@ async function testQdrantService() {
     // Test 2: Search for similar texts
     logger.info('\n=== Testing Search ===');
     const searchResults = await qdrantService.searchText('quick fox', 5);
-    logger.info('Search results:', searchResults);
+    logger.info('Search results:', { count: searchResults.length, results: searchResults });
 
-    // Push metrics before cleanup since this is a short-lived process
-    await serviceFactory.getCentralizedMetrics().pushMetrics('qdrant_test');
   } catch (error) {
-    logger.error('Test failed:', error);
+    logger.error('Test failed:', { error });
+    throw error;
   } finally {
-    await cleanupCollection(process.env.QDRANT_URL!, 'test_collection');
-    await dataSource.destroy();
+    await cleanupCollection(process.env.QDRANT_URL || 'http://localhost:6333', TEST_COLLECTION);
+    await ServiceFactory.close();
   }
 }
 
-testQdrantService();
+// Run the test
+if (require.main === module) {
+  // Ensure required environment variables are set
+  if (!process.env.OPENAI_API_KEY) {
+    console.error('Please set OPENAI_API_KEY environment variable');
+    process.exit(1);
+  }
+
+  testQdrantService()
+    .then(() => {
+      console.log('\nTest completed successfully');
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('\nTest failed:', error);
+      process.exit(1);
+    });
+}

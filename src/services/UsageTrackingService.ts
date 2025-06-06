@@ -55,8 +55,6 @@ export class UsageTrackingService implements IUsageTrackingService {
       }
 
       // Push metrics immediately
-      await this.centralizedMetrics.pushMetrics(`usage_${tags.service || 'unknown'}`);
-
       this.loggerService.info('Usage recorded for billing', {
         metric: metricName,
         value,

@@ -83,6 +83,14 @@ export class ServiceFactory {
     return ServiceFactory.instance;
   }
 
+  static async close(): Promise<void> {
+    if (ServiceFactory.instance) {
+      await ServiceFactory.instance.dataSource.destroy();
+      await ServiceFactory.instance.centralizedMetrics.pushMetrics('end_relocate_metrics');
+      ServiceFactory.instance = null;
+    }
+  }
+
   public getStudyHandler(): StudyHandler {
     return new StudyHandler(this.queueService, this.dataSource);
   }

@@ -107,7 +107,6 @@ export class QdrantVectorStoreService {
         { collection: this.collectionName, status: 'success' }
       );
 
-
       this.loggerService.info('Successfully indexed text', { id });
 
       return id;

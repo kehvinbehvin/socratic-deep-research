@@ -41,9 +41,10 @@ async function testUsageTracking() {
     const summary = await usageTracking.getUsageSummary(startTime);
     console.log('Usage Summary:', JSON.stringify(summary, null, 2));
 
-    // Push metrics before exit since this is a short-lived process
-    await serviceFactory.getCentralizedMetrics().pushMetrics('usage_tracking_test');
+    await ServiceFactory.close();
+
   } catch (error) {
+    await ServiceFactory.close();
     console.error('Test failed:', error);
   }
 }
