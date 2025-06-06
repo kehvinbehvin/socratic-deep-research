@@ -18,17 +18,27 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
     let handlerName = handler.name || 'unknown';
     let eventType = 'Records' in event ? 'sqs' : 'api';
 
+    // Initialize database connection
+    dataSource = await initializeDatabase();
+    logger.info('Database initialized');
+
+    // Initialize services
+    const serviceFactory = await ServiceFactory.initialize(dataSource);
+    logger.info('Services initialized');
+
+    // Initialize usage tracking
+    const metrics = serviceFactory.getCentralizedMetrics();
+
+    // If these services are not initialized, we wont proceed
+    if (!dataSource || !serviceFactory) {
+      logger.error('Services not initialized');
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Services not initialized' }),
+      };
+    }
+
     try {
-      // Initialize database connection
-      dataSource = await initializeDatabase();
-      logger.info('Database initialized');
-
-      // Initialize services
-      const serviceFactory = await ServiceFactory.initialize(dataSource);
-      logger.info('Services initialized');
-
-      // Initialize usage tracking
-      const metrics = serviceFactory.getCentralizedMetrics();
       // Record invocation
       metrics.observe(MetricDefinitions.lambda.invocations, 1, {
         handler: handlerName,
@@ -85,28 +95,21 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
         error: error instanceof Error ? error.stack : String(error),
       });
 
-      // Initialize database and services
-      const dataSource = await initializeDatabase();
-      const serviceFactory = await ServiceFactory.initialize(dataSource);
+      const duration = Date.now() - startTime;
 
-      const metrics = serviceFactory.getCentralizedMetrics();
-      if (metrics) {
-        const duration = Date.now() - startTime;
-
-        // Record duration
-        metrics.observe(MetricDefinitions.lambda.duration, duration / 1000, {
+      // Record duration
+      metrics.observe(MetricDefinitions.lambda.duration, duration / 1000, {
           handler: handlerName,
           type: eventType,
           status: 'error'
-        });
+      });
 
-        // Record errors
-        metrics.observe(MetricDefinitions.lambda.errors, 1, {
-          handler: handlerName,
-          type: eventType,
-          error_type: error instanceof z.ZodError ? 'validation' : 'internal'
-        });
-      }
+      // Record errors
+      metrics.observe(MetricDefinitions.lambda.errors, 1, {
+        handler: handlerName,
+        type: eventType,
+        error_type: error instanceof z.ZodError ? 'validation' : 'internal'
+      });
 
       await ServiceFactory.close();
 
