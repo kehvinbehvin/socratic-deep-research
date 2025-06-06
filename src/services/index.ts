@@ -1,4 +1,3 @@
-export * from './OpenAIService';
 export * from './LoggerService';
 export * from './QueueService';
 export * from './CentralisedMetricsService';
