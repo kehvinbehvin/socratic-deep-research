@@ -71,11 +71,7 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
         type: eventType
       });
 
-      // Push metrics
-      await metrics.pushMetrics('lambda_metrics');
-
-      // Clean up
-      await dataSource.destroy();
+      await ServiceFactory.close();
 
       return {
         statusCode: 200,
@@ -112,8 +108,7 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
         });
       }
 
-      await metrics.pushMetrics('lambda_metrics');
-
+      await ServiceFactory.close();
 
       if (dataSource) {
         await dataSource.destroy();

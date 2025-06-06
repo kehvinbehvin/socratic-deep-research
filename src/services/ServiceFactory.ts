@@ -51,11 +51,11 @@ export class ServiceFactory {
       ServiceFactory.instance = new ServiceFactory();
       ServiceFactory.instance.dataSource = dataSource;
       await ServiceFactory.instance.queueService.initialize();
+      ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091');
 
       ServiceFactory.instance.openAIService = new OpenAIService(process.env.OPENAI_API_KEY || '');
-      ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '');
+      ServiceFactory.instance.serpApiService = new SerpApiService(process.env.SERP_API_KEY || '', ServiceFactory.instance.centralizedMetrics);
 
-      ServiceFactory.instance.centralizedMetrics = CentralizedMetricsService.getInstance(ServiceFactory.instance.loggerService, process.env.PROMETHEUS_PUSHGATEWAY_URL || 'http://localhost:9091');
       
       ServiceFactory.instance.s3Service = new S3Service(
         process.env.S3_BUCKET_REGION || 'ap-southeast-1',

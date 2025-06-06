@@ -67,7 +67,7 @@ export const ApiCallsMetrics: MetricDefinition = {
     name: 'api_calls_total',
     help: 'Total number of API calls',
     type: 'counter',
-    labelNames: ['service', 'endpoint']
+    labelNames: ['service', 'endpoint', 'operation']
 }
 
 export const TokensMetrics: MetricDefinition = {
@@ -81,7 +81,7 @@ export const ErrorMetrics: MetricDefinition = {
     name: 'error_count',
     help: 'Error count by category and type',
     type: 'counter',
-    labelNames: ['category', 'type', 'message']
+    labelNames: ['category', 'type', 'message','service']
 }
 
 export const CostMetrics: MetricDefinition = {
@@ -126,6 +126,13 @@ export const LambdaSuccessMetrics: MetricDefinition = {
     labelNames: ['handler', 'type']
 }
 
+export const APICallDurationMetrics: MetricDefinition = {
+    name: 'api_call_duration_seconds',
+    help: 'Duration of API calls',
+    type: 'histogram',
+    labelNames: ['service', 'endpoint', 'status']
+}
+
 export const MetricDefinitions = {
     // Vector Store Metrics
     vectorStore: {
@@ -149,6 +156,7 @@ export const MetricDefinitions = {
         tokens: TokensMetrics,
         cost: CostMetrics,
         totalCost: TotalCostMetrics,
+        duration: APICallDurationMetrics,
     },
 
     // Lambda Metrics
