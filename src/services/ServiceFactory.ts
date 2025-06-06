@@ -153,7 +153,8 @@ export class ServiceFactory {
       this.queueService,
       this.dataSource,
       this.s3Service,
-      this.langChainService
+      this.langChainService,
+      this.qdrantVectorStoreService
     );
   }
 

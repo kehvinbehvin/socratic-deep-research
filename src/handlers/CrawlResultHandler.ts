@@ -9,6 +9,7 @@ import { QueueHandler } from './QueueHandler';
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { LangChainService } from '../services/LangChainService';
 import { z } from 'zod';
+import { QdrantVectorStoreService } from '../services/QdrantVectorStoreService';
 
 // Define schema for relevance scoring
 const RelevanceSchema = z.object({
@@ -20,12 +21,13 @@ export class CrawlResultHandler extends QueueHandler<CrawlResultStageData, Revie
   private s3Service: S3Service;
   private langChainService: LangChainService;
   private textSplitter: RecursiveCharacterTextSplitter;
-
+  private qdrantVectorStoreService: QdrantVectorStoreService;
   constructor(
     queueService: QueueService,
     dataSource: DataSource,
     s3Service: S3Service,
-    langChainService: LangChainService
+    langChainService: LangChainService,
+    qdrantVectorStoreService: QdrantVectorStoreService
   ) {
     super(
       queueService,
@@ -36,6 +38,7 @@ export class CrawlResultHandler extends QueueHandler<CrawlResultStageData, Revie
     );
     this.s3Service = s3Service;
     this.langChainService = langChainService;
+    this.qdrantVectorStoreService = qdrantVectorStoreService;
     this.textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
       chunkOverlap: 200
@@ -148,10 +151,21 @@ Rate the relevance of this content to the topic on a scale of 0-1 and explain wh
             try {
               // Generate relevance score
               const relevanceResult = await this.generateRelevanceScore(chunk, topic.content);
+
+              // Index the chunk in Qdrant with metadata
+              const vectorId = await this.qdrantVectorStoreService.indexText(chunk, {
+                topic: topic.content,
+                topicId: topic.id,
+                relevance: relevanceResult.relevance,
+                rationale: relevanceResult.rationale,
+                crawlResultId: id,
+                pageUrl: page.url,
+                chunkIndex: index + 1
+              });
               
               // Create review entity
               const review = new Review();
-              review.chunkId = `${id}_chunk${index + 1}`;
+              review.chunkId = vectorId;
               review.content = chunk;
               review.relevance = relevanceResult.relevance;
               review.topic = topic;
