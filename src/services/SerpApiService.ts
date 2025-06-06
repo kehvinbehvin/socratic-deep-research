@@ -23,12 +23,15 @@ export class SerpApiService {
 
   async search(query: string, numResults: number = 10): Promise<SerpApiResult[]> {
     const startTime = Date.now();
+    const endpoint = 'serpapi_google';
+    const service = 'serpapi';
+
     try {
       // Record API call attempt
       this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
-        service: 'serpapi',
+        service: service,
         operation: 'serpapi_search_attempt',
-        endpoint: 'google'
+        endpoint: endpoint
       }); 
 
       const location = 'us';
@@ -42,19 +45,19 @@ export class SerpApiService {
       });
 
       this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
-        service: 'serpapi',
+        service: service,
         operation: 'serpapi_search_success',
-        endpoint: 'google'
+        endpoint: endpoint
       }); 
 
-      const organicResults = response.organic_results || [];
-      
       const duration = (Date.now() - startTime) / 1000;
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
-        service: 'serpapi',
-        endpoint: `serpapi_google`,
+        service: service,
+        endpoint: endpoint,
         status: 'success'
       });
+
+      const organicResults = response.organic_results || [];
 
       return organicResults.map((result: any, index: number) => ({
         position: index + 1,
@@ -66,13 +69,13 @@ export class SerpApiService {
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
       this.metrics.observe(MetricDefinitions.usage.duration, duration, {
-        service: 'serpapi',
-        endpoint: `serpapi_google`,
+        service: service,
+        endpoint: endpoint,
         status: 'error'
       });
 
       this.metrics.observe(MetricDefinitions.error.errorCount, 1, {
-        service: 'serpapi',
+        service: service,
         category: 'serpapi_search_error',
         message: error instanceof Error ? error.message : 'unknown',
         type: error instanceof Error ? error.name : 'unknown'

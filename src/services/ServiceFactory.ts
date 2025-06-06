@@ -65,6 +65,7 @@ export class ServiceFactory {
         ServiceFactory.instance.dataSource,
         ServiceFactory.instance.s3Service,
         ServiceFactory.instance.loggerService,
+        ServiceFactory.instance.centralizedMetrics
       );
       ServiceFactory.instance.langChainService = new LangChainService();
       

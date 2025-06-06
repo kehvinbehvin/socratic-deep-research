@@ -2,20 +2,34 @@ import { S3Service } from '../services/S3Service';
 import { LoggerService } from '../services/LoggerService';
 import { Page } from '../entities/Page';
 import { DataSource } from 'typeorm';
+import { CentralizedMetricsService } from './CentralisedMetricsService';
+import { MetricDefinitions } from '../metrics/definitions';
 
 export class FireCrawlService {
   private dataSource: DataSource;
   private s3Service: S3Service;
   private logger: LoggerService;
+  private metrics: CentralizedMetricsService;
 
-  constructor(dataSource: DataSource, s3Service: S3Service, logger: LoggerService) {
+  constructor(dataSource: DataSource, s3Service: S3Service, logger: LoggerService, metrics: CentralizedMetricsService) {
     this.dataSource = dataSource;
     this.s3Service = s3Service;
     this.logger = logger;
+    this.metrics = metrics;
   }
 
   async createCrawlRequest(url: string): Promise<string> {
+    const startTime = Date.now();
+    const endpoint = 'firecrawl_crawl_request';
+    const service = 'firecrawl';
+
     try {
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+        service: service,
+        operation: 'firecrawl_crawl_request_attempt',
+        endpoint: endpoint,
+      });
+
       const body = {
         url: url,
         limit: 1,
@@ -46,6 +60,20 @@ export class FireCrawlService {
         body: JSON.stringify(body),
       });
 
+      // Record a successful API call
+      const duration = (Date.now() - startTime) / 1000;
+      this.metrics.observe(MetricDefinitions.usage.duration, duration, {
+        service: service,
+        endpoint: endpoint,
+        status: 'success'
+      });
+
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+        service: service,
+        operation: 'firecrawl_crawl_request_success',
+        endpoint: endpoint,
+      });
+
       const data = await response.json();
       console.log("FireCrawl response", data)
 
@@ -58,6 +86,20 @@ export class FireCrawlService {
       return data.id;
 
     } catch (error) {
+      const duration = (Date.now() - startTime) / 1000;
+      this.metrics.observe(MetricDefinitions.usage.duration, duration, {
+        service: service,
+        endpoint: endpoint,
+        status: 'error'
+      });
+
+      this.metrics.observe(MetricDefinitions.error.errorCount, 1, {
+        service: service,
+        category: 'firecrawl_crawl_request_error',
+        message: error instanceof Error ? error.message : 'unknown',
+        type: error instanceof Error ? error.name : 'unknown'
+      });
+
       this.logger.error('Failed to create FireCrawl request', {
         url,
         error: error instanceof Error ? error.stack : String(error)
@@ -67,13 +109,36 @@ export class FireCrawlService {
   }
 
   async handleWebhookResponse(crawlId: string): Promise<string> {
+    const startTime = Date.now();
+    const endpoint = 'firecrawl_crawl_webhook';
+    const service = 'firecrawl';
+
     try {
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+        service: service,
+        operation: 'firecrawl_crawl_webhook_attempt',
+        endpoint: endpoint,
+      });
+
       const response = await fetch(`https://api.firecrawl.dev/v1/crawl/${crawlId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.FC_API_KEY}`
         },
+      });
+
+      const duration = (Date.now() - startTime) / 1000;
+      this.metrics.observe(MetricDefinitions.usage.duration, duration, {
+        service: service,
+        endpoint: endpoint,
+        status: 'success'
+      });
+
+      this.metrics.observe(MetricDefinitions.usage.apiCalls, 1, {
+        service: service,
+        operation: 'firecrawl_crawl_webhook_success',
+        endpoint: endpoint,
       });
 
       const data = await response.json();
@@ -107,6 +172,20 @@ export class FireCrawlService {
       return crawlId;
 
     } catch (error) {
+      const duration = (Date.now() - startTime) / 1000;
+      this.metrics.observe(MetricDefinitions.usage.duration, duration, {
+        service: service,
+        endpoint: endpoint,
+        status: 'error'
+      });
+
+      this.metrics.observe(MetricDefinitions.error.errorCount, 1, {
+        service: service,
+        category: 'firecrawl_crawl_webhook_error',
+        message: error instanceof Error ? error.message : 'unknown',
+        type: error instanceof Error ? error.name : 'unknown'
+      });
+
       this.logger.error('Failed to handle webhook response', {
         crawlId,
         error: error instanceof Error ? error.stack : String(error)
