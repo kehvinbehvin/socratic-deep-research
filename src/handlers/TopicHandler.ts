@@ -72,7 +72,10 @@ Each question should have:
       systemPrompt,
       userPrompt,
       schema: QuestionOutputSchema,
-      input: { topic: topic.content }
+      input: { topic: topic.content },
+      useRetrieval: true,
+      searchQuery: topic.content,
+      topK: 3
     });
 
     // Create and save Question entities

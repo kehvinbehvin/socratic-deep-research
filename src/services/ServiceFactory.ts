@@ -64,10 +64,6 @@ export class ServiceFactory {
         ServiceFactory.instance.loggerService,
         ServiceFactory.instance.centralizedMetrics
       );
-      ServiceFactory.instance.langChainService = new LangChainService(
-        ServiceFactory.instance.loggerService,
-        ServiceFactory.instance.centralizedMetrics
-      );
       
       ServiceFactory.instance.qdrantVectorStoreService = new QdrantVectorStoreService(
         ServiceFactory.instance.loggerService,
@@ -77,6 +73,12 @@ export class ServiceFactory {
         process.env.QDRANT_COLLECTION_NAME || 'documents',
         process.env.QDRANT_EMBEDDING_MODEL || 'text-embedding-3-small'
       )
+
+      ServiceFactory.instance.langChainService = new LangChainService(
+        ServiceFactory.instance.loggerService,
+        ServiceFactory.instance.centralizedMetrics,
+        ServiceFactory.instance.qdrantVectorStoreService
+      );
 
       ServiceFactory.instance.usageTrackingService = new UsageTrackingService(
         ServiceFactory.instance.loggerService,

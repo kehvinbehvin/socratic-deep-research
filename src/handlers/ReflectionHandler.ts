@@ -93,7 +93,10 @@ Generate clarification points that will help deepen understanding.`;
       input: { 
         topic: topic.content,
         reflections: reflections.map(r => r.content).join('\n\n')
-      }
+      },
+      useRetrieval: true,
+      searchQuery: reflections.map(r => r.content).join('\n'),
+      topK: 3
     });
 
     // Create and save Clarification entities

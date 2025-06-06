@@ -107,7 +107,10 @@ Each reflection should have:
       input: { 
         topic: topic.content,
         questions: questions.map(q => q.content).join('\n')
-      }
+      },
+      useRetrieval: true,
+      searchQuery: questions.map(q => q.content).join('\n'),
+      topK: 3
     });
 
     // Create and save Reflection entities

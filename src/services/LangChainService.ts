@@ -5,14 +5,16 @@ import { z } from "zod";
 import { LoggerService } from "./LoggerService";
 import { CentralizedMetricsService } from "./CentralisedMetricsService";
 import { MetricDefinitions } from "../metrics/definitions";
+import { QdrantVectorStoreService } from "./QdrantVectorStoreService";
 
 export class LangChainService {
   private model: ChatOpenAI;
   private logger: LoggerService;
   private metrics: CentralizedMetricsService;
   private modelName: string;
+  private qdrantService: QdrantVectorStoreService;
   
-  constructor(logger: LoggerService, metrics: CentralizedMetricsService) {
+  constructor(logger: LoggerService, metrics: CentralizedMetricsService, qdrantService: QdrantVectorStoreService) {
     this.modelName = "gpt-4o-mini";
     this.model = new ChatOpenAI({
       modelName: this.modelName,
@@ -22,6 +24,7 @@ export class LangChainService {
     });
     this.logger = logger;
     this.metrics = metrics;
+    this.qdrantService = qdrantService;
   }
 
   async generateStructured<T extends z.ZodType>(params: {
@@ -29,14 +32,40 @@ export class LangChainService {
     userPrompt: string;
     schema: T;
     input: Record<string, any>;
+    useRetrieval?: boolean;
+    searchQuery?: string;
+    topK?: number;
   }): Promise<z.infer<T>> {
     const startTime = Date.now();
     const endpoint = 'langchain_generate_structured';
     const service = 'langchain';
 
     try {
+      let contextualPrompt = params.systemPrompt;
+
+      // Perform retrieval if requested and qdrantService is available
+      if (params.useRetrieval && params.searchQuery) {
+        this.logger.info('Retrieval requested');
+        
+        const searchResults = await this.qdrantService.searchText(
+          params.searchQuery,
+          params.topK || 5
+        );
+
+        // Add retrieved context to system prompt
+        if (searchResults.length > 0) {
+          this.logger.info('Context retrieved', { searchResultsLength: searchResults.length });
+
+          const context = searchResults
+            .map(r => `Content: ${r.text?.replace(/[{}]/g, '')}\nRelevance: ${r.score.toFixed(2)}`)
+            .join('\n\n');
+          
+          contextualPrompt = `${params.systemPrompt}\n\nRelevant Context:\n${context}\n\nUse the above context to inform your response.`;
+        }
+      }
+
       const prompt = ChatPromptTemplate.fromMessages([
-        ["system", `${params.systemPrompt}`],
+        ["system", `${contextualPrompt}`],
         ["human", params.userPrompt],
       ]);
 
