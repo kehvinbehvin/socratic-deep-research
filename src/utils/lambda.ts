@@ -1,11 +1,8 @@
 import { APIGatewayProxyEvent, SQSEvent } from 'aws-lambda';
 import { initializeDatabase } from '../config/database';
 import { ServiceFactory } from '../services/ServiceFactory';
-import { LoggerService } from '../services/LoggerService';
 import { z } from 'zod';
 import { MetricDefinitions } from '../metrics/definitions';
-
-const logger = LoggerService.getInstance();
 
 export interface HandlerConfig<T> {
   handler: (input: T , serviceFactory: ServiceFactory) => Promise<any>;
@@ -13,24 +10,18 @@ export interface HandlerConfig<T> {
 
 export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: APIGatewayProxyEvent | SQSEvent) => Promise<any> {
   return async (event) => {
-    let dataSource;
     const startTime = Date.now();
     let handlerName = handler.name || 'unknown';
     let eventType = 'Records' in event ? 'sqs' : 'api';
 
     // Initialize database connection
-    dataSource = await initializeDatabase();
-    logger.info('Database initialized');
-
-    // Initialize services
+    const dataSource = await initializeDatabase();
     const serviceFactory = await ServiceFactory.initialize(dataSource);
-    logger.info('Services initialized');
-
-    // Initialize usage tracking
+    const logger = serviceFactory.getLoggerService();
     const metrics = serviceFactory.getCentralizedMetrics();
 
     // If these services are not initialized, we wont proceed
-    if (!dataSource || !serviceFactory) {
+    if (!dataSource || !serviceFactory || !logger || !metrics) {
       logger.error('Services not initialized');
       return {
         statusCode: 500,
@@ -112,10 +103,6 @@ export function createLambdaHandler<T>({ handler }: HandlerConfig<T>): (event: A
       });
 
       await ServiceFactory.close();
-
-      if (dataSource) {
-        await dataSource.destroy();
-      }
 
       return {
         statusCode: error instanceof z.ZodError ? 400 : 500,
