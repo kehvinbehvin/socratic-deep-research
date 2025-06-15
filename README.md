@@ -2,6 +2,13 @@
 
 A modern learning platform that uses AI-driven Socratic questioning to deepen understanding and facilitate learning through structured dialogue.
 
+## Demo
+![Start](./assets/Start.png "Start")
+![Questions](./assets/Questions.png "Questions")
+![Reflecting](./assets/Reflecting.png "Reflecting")
+![Clarifications](./assets/Clarifications.png "Clarifications")
+![Metrics](./assets/Metrics.png "Metrics")
+
 ## Tech Stack
 
 - **Runtime**: Node.js 18.x

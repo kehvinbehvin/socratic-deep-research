@@ -34,6 +34,7 @@ provider:
     AWS_PROFILE: ${file(env.dev.yml):AWS_PROFILE, 'relocate'}
     QDRANT_URL: ${file(env.dev.yml):QDRANT_URL, 'http://localhost:6333'}
     PUSHGATEWAY_URL: ${file(env.dev.yml):PUSHGATEWAY_URL, 'http://localhost:9091'}
+    SERVERLESS_ACCESS_KEY: ${file(env.dev.yml):SERVERLESS_ACCESS_KEY}
   iam:
     role:
       statements:
