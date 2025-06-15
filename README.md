@@ -196,6 +196,9 @@ Before deploying:
 5. Set up monitoring alerts
 6. Configure production webhook endpoints
 
+## WIP
+1. Evaluation guardrails
+
 ## Contributing
 
 1. Fork the repository
