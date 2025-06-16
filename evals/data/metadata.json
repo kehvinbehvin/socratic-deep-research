@@ -1,7 +1,28 @@
 {
-  "created_at": "2025-06-16T16:22:13.913Z",
-  "eval_uuid": "eval_68504a3f27dc8191a6d22b2f8422fdf2",
-  "updated_at": "2025-06-16T16:45:52.772Z",
-  "file_uuid": "file-6TvwpBQp8vPxowunt1Bv2N",
-  "run_uuid": "evalrun_68504a4030588191a6bc39e24c807d76"
+  "evaluations": [
+    {
+      "eval_68504a3f27dc8191a6d22b2f8422fdf2": {
+        "message": "Create new evaluation, added new criteria",
+        "runs": [
+          {
+            "run_uuid": "evalrun_68504a4030588191a6bc39e24c807d76",
+            "message": "Test new criteria",
+            "created_at": "2025-06-16T16:45:52.772Z",
+            "updated_at": "2025-06-16T16:45:52.772Z",
+          },
+          {
+            "run_uuid": "evalrun_68504a4030588191a6bc39e24c807d76",
+            "message": "Improved prompt description. Output was not valid JSON.",
+            "created_at": "2025-06-16T16:45:52.772Z",
+            "updated_at": "2025-06-16T16:45:52.772Z",
+          }
+        ]
+      }
+    }
+  ],
+  "criteria": "criteria.json",
+  "test_data": "test_data.jsonl",
+  "target_prompt": "target_prompt.json",
+  "schema": "schema.json",
+  "namespace": "questions"
 }
