@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "SocraticQuestionGeneration",
+    "type": "object",
+    "properties": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "object",
+            "properties": {
+              "content": { "type": "string" }
+            },
+            "required": ["content"]
+          }
+        },
+        "required": ["topic"]
+      },
+      "expected": {
+        "type": "object",
+        "properties": {
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": { "type": "string" }
+              },
+              "required": ["content"]
+            }
+          }
+        },
+        "required": ["questions"]
+      }
+    },
+    "required": ["input", "expected"]
+  }
+  

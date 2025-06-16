@@ -1,0 +1,14 @@
+[
+    {
+      "name": "Socratic question quality",
+      "type": "score_model",
+      "model": "gpt-4o-mini",
+      "input": [
+        {
+            "role": "user",
+            "content": "Evaluate whether the model-generated list of questions reflects Socratic-style inquiry that guides the user to:\n\n1. Clarify the concept or scope of the topic.\n2. Break down the topic into components or structural elements.\n3. Identify key steps, resources, or tools to accomplish the goal.\n4. Anticipate common challenges or mistakes related to the topic.\n5. Reflect on the user’s purpose, audience, or context.\n\nThe questions do not need to exactly match the reference questions but should cover the same kinds of thinking.\n\nScore from 1.0 (excellent – covers all or most of the areas with good breadth and depth) to 0.0 (poor – irrelevant or superficial questions)."
+        }
+      ]
+    }
+  ]
+  

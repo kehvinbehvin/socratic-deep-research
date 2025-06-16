@@ -199,6 +199,22 @@ Before deploying:
 ## WIP
 1. Evaluation guardrails
 
+## Setting up evaluations with OpenAI
+1. Templatise all prompts to OpenAI
+2. Create schemas for test data set
+3. Choose testing criteria for each eval
+4. Send request to evals API to create eval
+5. Save returned uuid for created Eval
+6. Create test data set as a JSON file according to defined schema
+7. Upload files via files API
+8. Save returned uuid for uploaded files
+9. Use File uuid and Eval uuid to create an Eval Run via the evals api
+10. Save returned uuid for eval run
+11. View results on OPENAI
+12. Use a metadata file to save all the uuids.
+13. Version Control metadata file
+14. Use DVC to store test data set (Do not commit test data to git)
+
 ## Contributing
 
 1. Fork the repository
