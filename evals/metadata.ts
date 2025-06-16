@@ -181,4 +181,59 @@ export class MetadataConfigManager {
             );
         }
     }
+
+    async initializeNewEvaluations() {
+        try {
+            Logger.log('info', 'Initializing new evaluations');
+            
+            // Read all files
+            const evaluations = await this.jsonFileStorage.read("evaluations.json") as Evaluation;
+            const existingHashes = await this.jsonFileStorage.read("evaluation_hashes.json") as EvaluationHash;
+            const existingMetadata = await this.jsonFileStorage.read("evaluations_metadata.json") as EvaluationMetadata;
+
+            // Process each evaluation
+            for (const [evalName, evaluation] of Object.entries(evaluations)) {
+                // Skip if hash already exists
+                if (existingHashes[evalName]) {
+                    Logger.log('debug', 'Hash already exists for evaluation', { evaluation: evalName });
+                    continue;
+                }
+
+                // Generate new hash
+                const newHash = {
+                    criteria: this.getContentHash(evaluation.criteria),
+                    testData: this.getContentHash(evaluation.testData),
+                    schema: this.getContentHash(evaluation.schema),
+                    targetPrompt: this.getContentHash(evaluation.targetPrompt)
+                };
+
+                // Add to hashes
+                this.evaluationHashes[evalName] = newHash;
+
+                // Add to metadata if not exists
+                if (!existingMetadata[evalName]) {
+                    this.evaluationsMetadata[evalName] = {
+                        evaluations: [{
+                            eval_uuid: '',
+                            file_uuid: '',
+                            message: 'Initial evaluation setup',
+                            runs: []
+                        }]
+                    };
+                }
+
+                Logger.log('info', 'Initialized new evaluation', { evaluation: evalName });
+            }
+
+            // Save changes
+            await this.save();
+            Logger.log('info', 'New evaluations initialization completed');
+        } catch (error: any) {
+            Logger.log('error', 'Failed to initialize new evaluations', { error: error.message });
+            throw new EvaluationError(
+                `Failed to initialize new evaluations: ${error.message}`,
+                'INIT_ERROR'
+            );
+        }
+    }
 } 

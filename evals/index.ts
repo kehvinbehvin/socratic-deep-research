@@ -64,6 +64,9 @@ export class EvaluationOrchestrator {
             // Initialize evaluator
             await this.evaluator.initialize();
             
+            // Initialize new evaluations before syncing
+            await this.syncer.metadataConfigManager.initializeNewEvaluations();
+            
             // First sync any changes
             const syncResult = await this.syncer.sync();
             if (!syncResult) {

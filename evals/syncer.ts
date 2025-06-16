@@ -5,7 +5,7 @@ import { Logger } from "./logger";
 
 export class EvaluationSyncer {
     private evaluationManager: EvaluationManager;
-    private metadataConfigManager: MetadataConfigManager;
+    public metadataConfigManager: MetadataConfigManager;
 
     constructor(directory: string, openai: OpenAI) {
         this.evaluationManager = new EvaluationManager(directory, openai);
