@@ -16,7 +16,7 @@ export class EvaluationManager {
         try {
             await this.metadataConfigManager.initialize();
             Logger.log('info', 'Evaluation manager initialized');
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to initialize evaluation manager', { error: error.message });
             throw new EvaluationError(
                 `Failed to initialize: ${error.message}`,
@@ -26,13 +26,25 @@ export class EvaluationManager {
     }
 
     getEvaluations() {
-        return Object.keys(this.metadataConfigManager.getEvaluations());
+        const evaluations = this.metadataConfigManager.getEvaluations();
+        // Filter out any empty or invalid evaluation names
+        return evaluations.filter(evalName => evalName && typeof evalName === 'string' && evalName.trim() !== '');
     }
 
     async createEvaluation(evaluationName: string) {
+        if (!evaluationName || typeof evaluationName !== 'string' || evaluationName.trim() === '') {
+            throw new EvaluationError('Invalid evaluation name', 'INVALID_EVAL_NAME');
+        }
+
         try {
             Logger.log('info', 'Creating evaluation', { evaluationName });
             const evaluation = this.metadataConfigManager.getEvaluation(evaluationName);
+            if (!evaluation) {
+                throw new EvaluationError(
+                    `Evaluation ${evaluationName} not found`,
+                    'EVAL_NOT_FOUND'
+                );
+            }
             
             const result = await this.openai.evals.create({
                 name: "Socratic Generation",
@@ -55,7 +67,7 @@ export class EvaluationManager {
                 evaluationName, 
                 evaluationId: result.id 
             });
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to create evaluation', { 
                 evaluationName, 
                 error: error.message 
@@ -94,7 +106,7 @@ export class EvaluationManager {
                 evaluationName, 
                 runId: run.id 
             });
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to create evaluation run', { 
                 evaluationName, 
                 error: error.message 

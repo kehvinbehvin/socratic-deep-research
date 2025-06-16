@@ -27,7 +27,7 @@ export class EvaluationSyncer {
             }
 
             return true;
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to sync evaluations', { error: error.message });
             return false;
         } finally {

@@ -1,21 +1,12 @@
 export class Logger {
-    static log(level: 'info' | 'error' | 'debug', message: string, meta?: any) {
-        const logEntry = {
-            timestamp: new Date().toISOString(),
+    static log(level: 'info' | 'error' | 'debug' | 'warn', message: string, data?: any) {
+        const timestamp = new Date().toISOString();
+        const logData = {
+            timestamp,
             level,
             message,
-            ...meta
+            ...data
         };
-        
-        switch(level) {
-            case 'error':
-                console.error(JSON.stringify(logEntry));
-                break;
-            case 'debug':
-                console.debug(JSON.stringify(logEntry));
-                break;
-            default:
-                console.log(JSON.stringify(logEntry));
-        }
+        console.log(JSON.stringify(logData));
     }
 } 

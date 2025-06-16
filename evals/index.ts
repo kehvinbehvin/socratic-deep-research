@@ -32,14 +32,6 @@ export class EvaluationOrchestrator {
                 Logger.log('debug', 'Created base directory', { directory: baseDir });
             }
 
-            // Create data directory
-            const dataDir = path.join(baseDir, 'data');
-            if (!fs.existsSync(dataDir)) {
-                fs.mkdirSync(dataDir, { recursive: true });
-                Logger.log('debug', 'Created data directory', { directory: dataDir });
-            }
-
-            // Initialize required JSON files with default structures
             const requiredFiles = {
                 'evaluations_metadata.json': {},
                 'evaluation_hashes.json': {},
@@ -50,13 +42,16 @@ export class EvaluationOrchestrator {
             for (const [filePath, defaultContent] of Object.entries(requiredFiles)) {
                 const fullPath = path.join(baseDir, filePath);
                 if (!fs.existsSync(fullPath)) {
+                    // Only create the file if it doesn't exist
                     fs.writeFileSync(fullPath, JSON.stringify(defaultContent, null, 2));
-                    Logger.log('debug', 'Created file', { filePath: fullPath });
+                    Logger.log('debug', 'Created new file', { filePath: fullPath });
+                } else {
+                    Logger.log('debug', 'File already exists, skipping creation', { filePath: fullPath });
                 }
             }
 
             Logger.log('info', 'Evaluation files setup completed');
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to setup evaluation files', { error: error.message });
             throw new Error(`Failed to setup evaluation files: ${error.message}`);
         }
@@ -65,6 +60,9 @@ export class EvaluationOrchestrator {
     async syncAndRun(): Promise<boolean> {
         try {
             Logger.log('info', 'Starting evaluation sync and run');
+
+            // Initialize evaluator
+            await this.evaluator.initialize();
             
             // First sync any changes
             const syncResult = await this.syncer.sync();
@@ -82,7 +80,7 @@ export class EvaluationOrchestrator {
 
             Logger.log('info', 'Evaluation sync and run completed successfully');
             return true;
-        } catch (error) {
+        } catch (error: any) {
             Logger.log('error', 'Failed to sync and run evaluations', { error: error.message });
             return false;
         }
