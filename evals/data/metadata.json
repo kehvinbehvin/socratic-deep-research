@@ -8,21 +8,17 @@
             "run_uuid": "evalrun_68504a4030588191a6bc39e24c807d76",
             "message": "Test new criteria",
             "created_at": "2025-06-16T16:45:52.772Z",
-            "updated_at": "2025-06-16T16:45:52.772Z",
+            "updated_at": "2025-06-16T16:45:52.772Z"
           },
           {
             "run_uuid": "evalrun_68504a4030588191a6bc39e24c807d76",
             "message": "Improved prompt description. Output was not valid JSON.",
             "created_at": "2025-06-16T16:45:52.772Z",
-            "updated_at": "2025-06-16T16:45:52.772Z",
+            "updated_at": "2025-06-16T16:45:52.772Z"
           }
         ]
       }
     }
   ],
-  "criteria": "criteria.json",
-  "test_data": "test_data.jsonl",
-  "target_prompt": "target_prompt.json",
-  "schema": "schema.json",
   "namespace": "questions"
 }

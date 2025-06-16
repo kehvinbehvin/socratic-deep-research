@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { EvaluationSyncer } from "./syncer";
 import { Evaluator } from "./evaluator";
 import { Logger } from "./logger";
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -17,6 +19,47 @@ export class EvaluationOrchestrator {
         });
         this.syncer = new EvaluationSyncer(directory, this.openai);
         this.evaluator = new Evaluator(directory);
+    }
+
+    setupFiles() {
+        try {
+            Logger.log('info', 'Setting up evaluation files');
+            
+            // Create the base directory if it doesn't exist
+            const baseDir = process.env.EVALUATION_DIR || './evals/files';
+            if (!fs.existsSync(baseDir)) {
+                fs.mkdirSync(baseDir, { recursive: true });
+                Logger.log('debug', 'Created base directory', { directory: baseDir });
+            }
+
+            // Create data directory
+            const dataDir = path.join(baseDir, 'data');
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+                Logger.log('debug', 'Created data directory', { directory: dataDir });
+            }
+
+            // Initialize required JSON files with default structures
+            const requiredFiles = {
+                'evaluations_metadata.json': {},
+                'evaluation_hashes.json': {},
+                'evaluations.json': {},
+            };
+
+            // Create each file if it doesn't exist
+            for (const [filePath, defaultContent] of Object.entries(requiredFiles)) {
+                const fullPath = path.join(baseDir, filePath);
+                if (!fs.existsSync(fullPath)) {
+                    fs.writeFileSync(fullPath, JSON.stringify(defaultContent, null, 2));
+                    Logger.log('debug', 'Created file', { filePath: fullPath });
+                }
+            }
+
+            Logger.log('info', 'Evaluation files setup completed');
+        } catch (error) {
+            Logger.log('error', 'Failed to setup evaluation files', { error: error.message });
+            throw new Error(`Failed to setup evaluation files: ${error.message}`);
+        }
     }
 
     async syncAndRun(): Promise<boolean> {
@@ -53,7 +96,15 @@ if (require.main === module) {
       process.exit(1);
     }
   
-    const evaluationOrchestrator = new EvaluationOrchestrator(process.env.EVALUATION_DIR || './evals');
+    const evaluationOrchestrator = new EvaluationOrchestrator(process.env.EVALUATION_DIR || './evals/files');
+
+    // Setup files first
+    try {
+        evaluationOrchestrator.setupFiles();
+    } catch (error) {
+        console.error('\nFailed to setup evaluation files:', error);
+        process.exit(1);
+    }
 
     evaluationOrchestrator.syncAndRun()
       .then(() => {

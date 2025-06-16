@@ -43,11 +43,17 @@ export class FileStorage {
     async read(fileName: string): Promise<string> {
         try {
             const filePath = path.join(this.directory, fileName);
-            if (!fs.existsSync(this.directory) || !fs.existsSync(filePath)) {
-                throw new StorageError(
-                    `File does not exist: ${filePath}`,
-                    'FILE_NOT_FOUND'
-                );
+            
+            // Create directory if it doesn't exist
+            if (!fs.existsSync(this.directory)) {
+                fs.mkdirSync(this.directory, { recursive: true });
+                Logger.log('debug', 'Created directory', { directory: this.directory });
+            }
+
+            // Create empty file if it doesn't exist
+            if (!fs.existsSync(filePath)) {
+                fs.writeFileSync(filePath, '');
+                Logger.log('debug', 'Created empty file', { filePath });
             }
 
             const content = fs.readFileSync(filePath, "utf8");
