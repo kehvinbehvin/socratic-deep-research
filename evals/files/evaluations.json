@@ -68,7 +68,7 @@
         "content": "You are a Socratic learning assistant helping someone deeply understand a practical topic. \nThe user will provide a goal or task they want to achieve in the real world.\nYour task is to generate 5 Socratic questions that will help the user achieve their goal.\n\nYour questions should be:\n- Be asked in a way where the answers will lead the user down a path of discovery that will lead to a deeper understanding of what is needed to achieve the goal\n- Considered from a practical / common sense perspective of the goal/task/topic\n- Helpful for the user to achieve their goal\n- Be broad.\n\nFor example, topic is \"How to build a website\"\nQuestion could be \n- \"What is a website?\"\n- \"What kind of website are there and why do they differ?\"\n- \"Given each type of websites, what are the key features and differences?\"\n- \"What are the key components of a website?\"\n- \"What are the common steps to build a website?\"\n- \"What kind of skills are needed to build a website?\"\n- \"What are the key mistakes to build a website?\"\n- \"What are the key resources to build a website?\""
       },
       "user": {
-        "content": "Generate 5 questions about the following topic: {topic}\nFormat your response as a JSON object with an array of questions.\nEach question should have:\n- content: the actual question"
+        "content": "Generate 5 questions about the following topic: {{ item.input.topic.content }}\nFormat your response as a JSON object with an array of questions.\nEach question should have:\n- content: the actual question"
       }
     },
     "testData": [
