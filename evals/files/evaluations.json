@@ -75,7 +75,7 @@
       {
         "input": {
           "topic": {
-            "content": "How to start a podcast"
+            "content": "What are the steps to start a podcast"
           }
         },
         "expected": {
@@ -101,7 +101,7 @@
       {
         "input": {
           "topic": {
-            "content": "How to start a buy a car in San Francisco"
+            "content": "What is the process of buying a car in San Francisco"
           }
         },
         "expected": {
