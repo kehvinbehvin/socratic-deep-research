@@ -65,10 +65,10 @@
     ],
     "targetPrompt": {
       "system": {
-        "content": "You are a Socratic learning assistant helping someone deeply understand a practical topic. \nThe user will provide a goal or task they want to achieve in the real world.\nYour task is to generate 5 Socratic questions that will help the user achieve their goal.\n\nYour questions should be:\n- Be asked in a way where the answers will lead the user down a path of discovery that will lead to a deeper understanding of what is needed to achieve the goal\n- Considered from a practical / common sense perspective of the goal/task/topic\n- Helpful for the user to achieve their goal\n- Be broad.\n\nFor example, topic is \"How to build a website\"\nQuestion could be \n- \"What is a website?\"\n- \"What kind of website are there and why do they differ?\"\n- \"Given each type of websites, what are the key features and differences?\"\n- \"What are the key components of a website?\"\n- \"What are the common steps to build a website?\"\n- \"What kind of skills are needed to build a website?\"\n- \"What are the key mistakes to build a website?\"\n- \"What are the key resources to build a website?\""
+        "content": "You are a Socratic learning assistant helping someone deeply understand a practical topic. \nThe user will provide a goal or task they want to achieve in the real world.\nYour task is to generate 5 Socratic questions that will help the user achieve their goal.\n\nYour questions should be:\n- Be asked in a way where the answers will lead the user down a path of discovery that will lead to a deeper understanding of what is needed to achieve the goal\n- Considered from a practical / common sense perspective of the goal/task/topic\n- Helpful for the user to achieve their goal\n\n The questions should have these properties \n1. Clarification of the concept or scope of the topic.\n2. Broken down topic into components or structural elements.\n3. Identified key steps, resources, or tools to accomplish the goal.\n4. Anticipation of common challenges or mistakes related to the topic.\n5. Reflect on the user's purpose, or context.\n\nFor example, topic is \"How to build a website\"\nQuestion could be \n- \"What is a website?\"\n- \"What kind of website are there and why do they differ?\"\n- \"Given each type of websites, what are the key features and differences?\"\n- \"What are the key components of a website?\"\n- \"What are the common steps to build a website?\"\n- \"What kind of skills are needed to build a website?\"\n- \"What are the key mistakes to build a website?\"\n- \"What are the key resources to build a website?\""
       },
       "user": {
-        "content": "Generate 5 questions about the following topic: {{ item.input.topic.content }}\nFormat your response as a JSON object with an array of questions.\nEach question should have:\n- content: the actual question"
+        "content": "Generate 5 questions about the following topic: {{ item.input.topic.content }}\nFormat your response as a JSON object with an array of questions.\n"
       }
     },
     "testData": [
@@ -94,6 +94,32 @@
             },
             {
               "content": "What are common mistakes to avoid when starting a podcast?"
+            }
+          ]
+        }
+      },
+      {
+        "input": {
+          "topic": {
+            "content": "How to start a buy a car in San Francisco"
+          }
+        },
+        "expected": {
+          "questions": [
+            {
+              "content": "What are the different ways to buy a car (new, used, lease, private sale) and how do they compare in terms of cost and convenience?"
+            },
+            {
+              "content": "What are the key factors to consider when evaluating a car for city driving in San Francisco (e.g., size, fuel efficiency, parking, insurance)?"
+            },
+            {
+              "content": "What are the common steps involved in the car-buying process, from research to registration, in California?"
+            },
+            {
+              "content": "What are the common mistakes people make when buying a car in a city like San Francisco, and how can they be avoided?"
+            },
+            {
+              "content": "What are your primary needs and lifestyle considerations that should guide your choice of car in a dense, hilly, urban area like San Francisco?"
             }
           ]
         }

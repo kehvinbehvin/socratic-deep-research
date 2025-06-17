@@ -67,23 +67,25 @@ export class MetadataConfigManager {
     }
 
     // Check if the evaluation has changed
-    diff(evaluation: string): boolean {
+    // Need to change this to return the changed keys.
+    // Caller will decide what to do with the changed keys.
+    diff(evaluation: string): EvaluationKey[] {
         const evaluationHashes = this.getEvaluationHashes(evaluation);
+        const triggerKeys: EvaluationKey[] = ['criteria', 'testData', 'schema', 'targetPrompt']
         if (!evaluationHashes) {
             Logger.log('info', 'No evaluation hashes found for evaluation', { evaluation });
-            return true;
+            return triggerKeys
         }
 
-        const triggerKeys: EvaluationKey[] = ['criteria', 'testData', 'schema'];
-        
+        const changedKeys: EvaluationKey[] = [];
         for (const key of triggerKeys) {
             if (key in this.evaluations[evaluation] && 
                 evaluationHashes[key] !== this.getContentHash(this.evaluations[evaluation][key])) {
-                return true;
+                changedKeys.push(key);
             }
         }
         
-        return false;
+        return changedKeys;
     }
 
     // To be called after a new run is created for the same evaluation

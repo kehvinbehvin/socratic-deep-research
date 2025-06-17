@@ -18,7 +18,18 @@ export class EvaluationSyncer {
             // if there are changes, create a new evaluation and update the metadata and hashes.
             // if there are no changes, use the existing evaluation and trigger a new run.
             for (const evaluation of this.metadataConfigManager.getEvaluationNames()) {
-                if (this.metadataConfigManager.diff(evaluation)) {
+                const changedKeys = this.metadataConfigManager.diff(evaluation);
+                if (changedKeys.length > 0) {
+                    Logger.log('info', 'Evaluation has changed', { evaluation, changedKeys });
+                    if (changedKeys.includes('testData')) {
+                        await this.evaluationManager.uploadTestData(evaluation);
+                    }
+
+                    // Skip prompt changes
+                    if (changedKeys.includes('targetPrompt')) {
+                        continue
+                    }
+                    
                     await this.evaluationManager.createEvaluation(evaluation);
                 }
             }
