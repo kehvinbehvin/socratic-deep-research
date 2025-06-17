@@ -25,7 +25,8 @@
     "logs": "tail -f logs/combined.log | pino-pretty",
     "metrics": "tail -f logs/metrics.log | pino-pretty",
     "tunnel": "ngrok http 3000",
-    "expose:webhook": "ngrok http --url=anemone-caring-cheetah.ngrok-free.app 3000"
+    "expose:webhook": "ngrok http --url=anemone-caring-cheetah.ngrok-free.app 3000",
+    "evals:run": "ts-node evals/index.ts"
   },
   "keywords": [
     "learning",
