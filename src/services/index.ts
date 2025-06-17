@@ -9,3 +9,4 @@ export * from './FireCrawlService';
 export * from './S3Service';
 export * from './LangChainService';
 export * from './QdrantVectorStoreService';
+export * from './PromptService';
