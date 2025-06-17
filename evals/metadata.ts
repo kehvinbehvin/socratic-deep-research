@@ -31,11 +31,6 @@ export class MetadataConfigManager {
             this.evaluationHashes = (hashes || {}) as EvaluationHash;
             this.evaluations = (evaluations || {}) as Evaluation;
 
-            // Only validate structure, don't reset data
-            this.validateMetadataStructure();
-            this.validateHashesStructure();
-            this.validateEvaluationsStructure();
-
             Logger.log('info', 'Metadata initialized successfully');
         } catch (error: any) {
             Logger.log('error', 'Failed to initialize metadata', { error: error.message });
@@ -46,113 +41,148 @@ export class MetadataConfigManager {
         }
     }
 
-    private validateMetadataStructure() {
-        if (!this.evaluationsMetadata || typeof this.evaluationsMetadata !== 'object') {
-            this.evaluationsMetadata = {};
-        }
-    }
-
-    private validateHashesStructure() {
-        if (!this.evaluationHashes || typeof this.evaluationHashes !== 'object') {
-            this.evaluationHashes = {};
-        }
-    }
-
-    private validateEvaluationsStructure() {
-        if (!this.evaluations || typeof this.evaluations !== 'object') {
-            this.evaluations = {};
-        }
-    }
-
     private getContentHash(content: any): string {
         return crypto.createHash('sha256').update(JSON.stringify(content)).digest('hex');
     }
 
-    setEvaluationHashes(evaluation: string) {
-        const evaluationHashes = this.getEvaluationHashes(evaluation);
-        const validKeys: EvaluationKey[] = ['criteria', 'testData', 'schema', 'targetPrompt'];
-        
-        for (const key of validKeys) {
-            if (key in this.evaluations[evaluation]) {
-                evaluationHashes[key] = this.getContentHash(this.evaluations[evaluation][key]);
-            }
+    getEvaluationHashes(evaluation: string) {
+        if (!this.evaluationHashes[evaluation]) {
+            Logger.log('info', 'No evaluation hashes found for evaluation', { evaluation });
+            return null;
         }
+
+        return this.evaluationHashes[evaluation];
     }
 
+    async setEvaluationHashes(evaluation: string) {
+        const validKeys: EvaluationKey[] = ['criteria', 'testData', 'schema', 'targetPrompt'];
+        this.evaluationHashes[evaluation] = {};
+
+        for (const key of validKeys) {
+            this.evaluationHashes[evaluation][key] = this.getContentHash(this.evaluations[evaluation][key]);
+        }
+
+        await this.save();
+        return;
+    }
+
+    // Check if the evaluation has changed
     diff(evaluation: string): boolean {
         const evaluationHashes = this.getEvaluationHashes(evaluation);
-        const validKeys: EvaluationKey[] = ['criteria', 'testData', 'schema', 'targetPrompt'];
+        if (!evaluationHashes) {
+            Logger.log('info', 'No evaluation hashes found for evaluation', { evaluation });
+            return true;
+        }
+
+        const triggerKeys: EvaluationKey[] = ['criteria', 'testData', 'schema'];
         
-        for (const key of validKeys) {
+        for (const key of triggerKeys) {
             if (key in this.evaluations[evaluation] && 
                 evaluationHashes[key] !== this.getContentHash(this.evaluations[evaluation][key])) {
                 return true;
             }
         }
+        
         return false;
     }
 
-    addRun(evaluation: string, run_uuid: string) {
-        const evaluationMetadata = this.getLatestEvaluation(evaluation);
+    // To be called after a new run is created for the same evaluation
+    async addRun(evaluation: string, run_uuid: string) {
+        const evaluationMetadata = this.getLatestEvaluationMetadata(evaluation);
+        if (!evaluationMetadata) {
+            Logger.log('error', 'No evaluation metadata found for evaluation', { evaluation });
+            return;
+        }
+
         evaluationMetadata.runs.push({
             run_uuid,
             created_at: new Date().toISOString(),
         });
+
+        await this.save();
     }
 
-    addEvaluation(evaluation: string, eval_uuid: string, file_uuid: string = "", message: string = "") {
+    // To be called after a new evaluation is created
+    async addEvaluation(evaluation: string, eval_uuid: string, message: string = "") {
         const evaluationMetadata = this.getEvaluationMetaData(evaluation);
+        if (!evaluationMetadata) {
+            Logger.log('error', 'No evaluation metadata found for evaluation', { evaluation });
+            return;
+        }
+
+        const latestEvaluation = evaluationMetadata.evaluations[evaluationMetadata.evaluations.length - 1];
+        
         evaluationMetadata.evaluations.push({
             eval_uuid,
-            file_uuid,
+            file_uuid: latestEvaluation.file_uuid,
             message,
             runs: [],
         });
+        await this.save();
+
+        await this.setEvaluationHashes(evaluation);
+
+        await this.save();
     }
 
-    getEvaluationHashes(evaluation: string) {
-        if (!this.evaluationHashes[evaluation]) {
-            this.evaluationHashes[evaluation] = {
-                criteria: undefined,
-                testData: undefined,
-                schema: undefined,
-                targetPrompt: undefined
-            };
-        }
-        return this.evaluationHashes[evaluation];
-    }
-
-    getEvaluationMetaData(evaluation: string) {
-        if (!this.evaluationsMetadata[evaluation]) {
-            this.evaluationsMetadata[evaluation] = {
-                evaluations: [{
-                    eval_uuid: '',
-                    file_uuid: '',
-                    message: '',
-                    runs: []
-                }]
-            };
-        }
-        return this.evaluationsMetadata[evaluation];
-    }
-
+    // Return user defined evaluations
     getEvaluation(evaluation: string) {
         return this.evaluations[evaluation];
     }
 
-    getEvaluations() {
+    // Return all evaluation names
+    getEvaluationNames(): string[] {
         return Object.keys(this.evaluations);
     }
 
-    getLatestEvaluation(evaluation: string) {
-        const metadata = this.getEvaluationMetaData(evaluation);
-        if (!Array.isArray(metadata.evaluations) || metadata.evaluations.length === 0) {
-            throw new EvaluationError(
-                `No evaluations found for ${evaluation}`,
-                'NO_EVALUATIONS'
-            );
+    // Return the entire evaluation metadata for a given evaluation
+    getEvaluationMetaData(evaluation: string) {
+        if (!this.evaluationsMetadata[evaluation]) {
+            Logger.log('error', 'No evaluation metadata found for evaluation', { evaluation });
+            return null;
         }
+
+        return this.evaluationsMetadata[evaluation];
+    }
+
+    // Return the latest evaluation metadata for a given evaluation
+    getLatestEvaluationMetadata(evaluation: string) {
+        const metadata = this.getEvaluationMetaData(evaluation);
+        if (!metadata) {
+            Logger.log('info', 'No evaluation metadata found for evaluation', { evaluation });
+            return null;
+        }
+
         return metadata.evaluations[metadata.evaluations.length - 1];
+    }
+    
+    async createNewEvaluationMetadata(evaluation: string) {
+        this.evaluationsMetadata[evaluation] = {
+            evaluations: [
+                {
+                    file_uuid: "",
+                    eval_uuid: "",
+                    message: "",
+                    runs: []
+                }
+            ]
+        };
+
+        await this.save();
+    }
+
+    async updateLatestEvaluationMetadata(evaluation: string, record: Record<string, any>) {
+        const latestEvaluation = this.getLatestEvaluationMetadata(evaluation);
+        if (!latestEvaluation) {
+            Logger.log('error', 'No latest evaluation metadata found for evaluation', { evaluation });
+            return;
+        }
+
+        for (const key in record) {
+            (latestEvaluation as any)[key] = record[key];
+        }
+
+        await this.save();
     }
 
     async save() {
@@ -173,66 +203,14 @@ export class MetadataConfigManager {
             await this.jsonFileStorage.write("evaluations.json", mergedEvaluations);
 
             Logger.log('info', 'Metadata saved successfully');
+
+            await this.initialize();
+            Logger.log('info', 'Metadata cache updated successfully');
         } catch (error: any) {
             Logger.log('error', 'Failed to save metadata', { error: error.message });
             throw new EvaluationError(
                 `Failed to save metadata: ${error.message}`,
                 'SAVE_ERROR'
-            );
-        }
-    }
-
-    async initializeNewEvaluations() {
-        try {
-            Logger.log('info', 'Initializing new evaluations');
-            
-            // Read all files
-            const evaluations = await this.jsonFileStorage.read("evaluations.json") as Evaluation;
-            const existingHashes = await this.jsonFileStorage.read("evaluation_hashes.json") as EvaluationHash;
-            const existingMetadata = await this.jsonFileStorage.read("evaluations_metadata.json") as EvaluationMetadata;
-
-            // Process each evaluation
-            for (const [evalName, evaluation] of Object.entries(evaluations)) {
-                // Skip if hash already exists
-                if (existingHashes[evalName]) {
-                    Logger.log('debug', 'Hash already exists for evaluation', { evaluation: evalName });
-                    continue;
-                }
-
-                // Generate new hash
-                const newHash = {
-                    criteria: this.getContentHash(evaluation.criteria),
-                    testData: this.getContentHash(evaluation.testData),
-                    schema: this.getContentHash(evaluation.schema),
-                    targetPrompt: this.getContentHash(evaluation.targetPrompt)
-                };
-
-                // Add to hashes
-                this.evaluationHashes[evalName] = newHash;
-
-                // Add to metadata if not exists
-                if (!existingMetadata[evalName]) {
-                    this.evaluationsMetadata[evalName] = {
-                        evaluations: [{
-                            eval_uuid: '',
-                            file_uuid: '',
-                            message: 'Initial evaluation setup',
-                            runs: []
-                        }]
-                    };
-                }
-
-                Logger.log('info', 'Initialized new evaluation', { evaluation: evalName });
-            }
-
-            // Save changes
-            await this.save();
-            Logger.log('info', 'New evaluations initialization completed');
-        } catch (error: any) {
-            Logger.log('error', 'Failed to initialize new evaluations', { error: error.message });
-            throw new EvaluationError(
-                `Failed to initialize new evaluations: ${error.message}`,
-                'INIT_ERROR'
             );
         }
     }

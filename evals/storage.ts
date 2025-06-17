@@ -89,7 +89,6 @@ export class FileStorage {
             }
 
             const content = fs.readFileSync(filePath, "utf8");
-            Logger.log('debug', 'Read file', { filePath });
             return content;
         } catch (error: any) {
             Logger.log('error', 'Failed to read file', { 

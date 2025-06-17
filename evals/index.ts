@@ -5,20 +5,18 @@ import { Evaluator } from "./evaluator";
 import { Logger } from "./logger";
 import fs from 'fs';
 import path from 'path';
+import { EvaluationManager } from "./evaluation";
+import { MetadataConfigManager } from "./metadata";
 
 dotenv.config();
 
 export class EvaluationOrchestrator {
-    private openai: OpenAI;
     private syncer: EvaluationSyncer;
     private evaluator: Evaluator;
 
-    constructor(directory: string) {
-        this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-        this.syncer = new EvaluationSyncer(directory, this.openai);
-        this.evaluator = new Evaluator(directory);
+    constructor(syncer: EvaluationSyncer, evaluator: Evaluator) {
+        this.syncer = syncer;
+        this.evaluator = evaluator;
     }
 
     setupFiles() {
@@ -57,25 +55,25 @@ export class EvaluationOrchestrator {
         }
     }
 
-    async syncAndRun(): Promise<boolean> {
+    async run(): Promise<boolean> {
         try {
-            Logger.log('info', 'Starting evaluation sync and run');
+            Logger.log('info', 'Starting evaluation run');
 
-            // Initialize evaluator
-            await this.evaluator.initialize();
-            
-            // Initialize new evaluations before syncing
-            await this.syncer.metadataConfigManager.initializeNewEvaluations();
-            
-            // First sync any changes
+            // Setup evaluation files if they don't exist
+            this.setupFiles();
+
+            // Initialize new evaluations
+            await this.evaluator.initializeNewEvaluations();
+
+            // If there are any changes, create new evaluations
             const syncResult = await this.syncer.sync();
             if (!syncResult) {
                 Logger.log('error', 'Sync failed, aborting run');
                 return false;
             }
 
-            // Then run evaluations
-            const runResult = await this.evaluator.run();
+            // Run all created evaluations
+            const runResult = await this.evaluator.runEvaluations();
             if (!runResult) {
                 Logger.log('error', 'Run failed');
                 return false;
@@ -96,24 +94,20 @@ if (require.main === module) {
       console.error('Please set OPENAI_API_KEY environment variable');
       process.exit(1);
     }
-  
-    const evaluationOrchestrator = new EvaluationOrchestrator(process.env.EVALUATION_DIR || './evals/files');
 
-    // Setup files first
-    try {
-        evaluationOrchestrator.setupFiles();
-    } catch (error) {
-        console.error('\nFailed to setup evaluation files:', error);
-        process.exit(1);
-    }
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+    const metadataConfigManager = new MetadataConfigManager(process.env.EVALUATION_DIR || './evals/files');
+    const evaluationManager = new EvaluationManager(metadataConfigManager, openai);
+    const syncer = new EvaluationSyncer(metadataConfigManager, evaluationManager);
+    const evaluator = new Evaluator(evaluationManager, metadataConfigManager);
 
-    evaluationOrchestrator.syncAndRun()
-      .then(() => {
-        console.log('\nEvaluation sync and run completed successfully');
-        process.exit(0);
-      })
-      .catch(error => {
-        console.error('\nEvaluation sync and run failed:', error);
+    metadataConfigManager.initialize().then(async () => {
+        const evaluationOrchestrator = new EvaluationOrchestrator(syncer, evaluator);
+        await evaluationOrchestrator.run();
+    }).catch((error) => {
+        console.error('\nFailed', error);
         process.exit(1);
-      });
-  }
+    });
+}

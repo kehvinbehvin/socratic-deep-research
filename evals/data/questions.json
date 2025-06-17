@@ -1,1 +1,28 @@
-{"item": {"input": {"topic": {"content": "How to start a podcast"}}, "expected": {"questions": [{"content": "What is the main goal or purpose of your podcast?"}, {"content": "Who is your target audience and what do they care about?"}, {"content": "What equipment and software do you need to start recording?"}, {"content": "How will you structure and format each episode?"}, {"content": "What steps are involved in publishing and distributing a podcast?"}]}}}
+{
+    "item": {
+      "input": {
+        "topic": {
+          "content": "How to start a podcast"
+        }
+      },
+      "expected": {
+        "questions": [
+          {
+            "content": "What kind of podcasts are there and what are the differences between them?"
+          },
+          {
+            "content": "What are the key components of a podcast?"
+          },
+          {
+            "content": "What are the key steps to start a podcast?"
+          },
+          {
+            "content": "What are the key resources to start a podcast?"
+          },
+          {
+            "content": "What are common mistakes to avoid when starting a podcast?"
+          }
+        ]
+      }
+    }
+  }
