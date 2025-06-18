@@ -97,6 +97,94 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 - Runtime validation
 - Structured data flow
 
+## Evaluation Framework
+
+The platform includes an automated evaluation framework for Socratic question generation using OpenAI Evals. This framework ensures reproducible, version-controlled evaluations of AI-generated questions.
+
+### Directory Structure
+
+The evaluation system is located in the `/evals` directory:
+
+```
+├── evals/
+│   ├── evaluations.json       # Defines evaluations (criteria, schema, test data, prompts)
+│   ├── evaluation_hashes.json # Tracks changes to evaluation components
+│   ├── evaluations_metadata.json # Stores metadata (UUIDs, file IDs, run IDs)
+│   ├── index.ts               # Orchestrates the evaluation process
+│   ├── metadata.ts            # Manages evaluation metadata and hashes
+│   ├── evaluation.ts          # Handles evaluation creation and runs
+│   ├── evaluator.ts           # Runs evaluations
+│   ├── syncer.ts              # Syncs changes and triggers updates
+│   ├── storage.ts             # Manages file storage
+│   └── logger.ts              # Logs evaluation events
+```
+
+### How It Works
+
+1. **Define Evaluations:**  
+   Edit `evaluations.json` to define your evaluation criteria, schema, test data, and prompts.
+
+2. **Track Changes:**  
+   The framework hashes each component (criteria, test data, schema, prompts) and tracks changes in `evaluation_hashes.json`.
+
+3. **Upload Test Data:**  
+   Test data is converted to JSONL and uploaded to OpenAI as a file. The file ID is stored in `evaluations_metadata.json`.
+
+4. **Create/Update Evaluations:**  
+   The framework calls the OpenAI Evals API to create or update evaluations based on changes detected.
+
+5. **Run Evaluations:**  
+   Evaluation runs are triggered, and results are tracked in `evaluations_metadata.json`.
+
+6. **Version Control:**  
+   All UUIDs, file IDs, and hashes are versioned for reproducibility. Do use DVC for large files.
+
+### How to Set Up
+
+#### Prerequisites
+
+- Node.js 18.x or 20.x (required for file uploads)
+- OpenAI API key
+
+#### Environment Variables
+
+Add the following to your `.env` file:
+
+```env
+OPENAI_API_KEY=your_openai_api_key
+```
+
+#### Initial Setup
+
+1. **Define Evaluations:**  
+   Edit `evals/evaluations.json` to define your evaluations. Example:
+
+   ```json
+   {
+     "question_generation": {
+       "criteria": [...],
+       "schema": {...},
+       "testData": [...],
+       "targetPrompt": {...}
+     }
+   }
+   ```
+
+2. **Run the Evaluation System:**  
+   Execute the following command to sync and run evaluations:
+
+   ```bash
+   npx ts-node ./evals/index.ts
+   ```
+
+3. **Monitor Results:**  
+   Check `evaluations_metadata.json` for evaluation results and logs.
+
+#### Version Control
+
+- DVC as an option 
+- Commit `evaluations.json`, `evaluation_hashes.json`, and `evaluations_metadata.json` to version control.
+
 ## Getting Started
 
 1. **Clone and Install**
@@ -142,6 +230,11 @@ npm run dev
 
 # Expose webhook endpoint (in a separate terminal)
 npm run expose:webhook
+```
+
+4. **Run Evaluations**
+```bash
+npx ts-node ./evals/index.ts
 ```
 
 ## Development Scripts
@@ -197,7 +290,7 @@ Before deploying:
 6. Configure production webhook endpoints
 
 ## WIP
-1. Evaluation guardrails
+1. Setting up evaluations all system prompts
 
 ## Setting up evaluations with OpenAI
 1. Templatise all prompts to OpenAI
