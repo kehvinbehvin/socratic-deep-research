@@ -35,7 +35,7 @@ export class Evaluator {
             for (const evalName of this.metadataConfigManager.getEvaluationNames()) {
                 const evaluationMetadata = this.metadataConfigManager.getLatestEvaluationMetadata(evalName);
                 if (evaluationMetadata) {
-                    Logger.log('error', 'Evaluation metadata already exists for evaluation', { evaluation: evalName });
+                    Logger.log('info', 'Evaluation metadata already exists for evaluation', { evaluation: evalName });
                     continue;
                 }
 
