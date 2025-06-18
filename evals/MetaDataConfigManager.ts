@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { JSONFileStorage } from "./storage";
-import { Logger } from "./logger";
+import { JSONFileStorage } from "./JSONFileStorage";
+import { EvaluationLogger as Logger } from "./EvaluationLogger";
 import { Evaluation, EvaluationMetadata, EvaluationHash } from "./types";
 import { EvaluationError } from "./errors";
 

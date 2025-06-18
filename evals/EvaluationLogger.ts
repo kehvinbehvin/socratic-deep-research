@@ -1,4 +1,4 @@
-export class Logger {
+export class EvaluationLogger {
     static log(level: 'info' | 'error' | 'debug' | 'warn', message: string, data?: any) {
         const timestamp = new Date().toISOString();
         const logData = {

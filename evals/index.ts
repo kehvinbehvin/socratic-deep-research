@@ -1,9 +1,9 @@
 import OpenAI from "openai";
 import dotenv from 'dotenv';
-import { EvaluationSyncer } from "./syncer";
+import { EvaluationSyncer } from "./EvaluationSyncer";
 import { Evaluator } from "./evaluator";
 import { EvaluationManager } from "./EvaluationManager";
-import { MetadataConfigManager } from "./metadata";
+import { MetadataConfigManager } from "./MetaDataConfigManager";
 import { EvaluationSystem } from "./EvaluationSystem";
 
 dotenv.config();

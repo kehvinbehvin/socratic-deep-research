@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { Logger } from "./logger";
+import { EvaluationLogger as Logger } from "./EvaluationLogger";
 import { StorageError } from "./errors";
 
-export class FileStorage {
+class FileStorage {
     private readonly directory: string;
     private readonly lockFile: string;
 

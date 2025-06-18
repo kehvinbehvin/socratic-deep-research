@@ -1,6 +1,6 @@
 import { EvaluationManager } from "./EvaluationManager";
-import { MetadataConfigManager } from "./metadata";
-import { Logger } from "./logger";
+import { MetadataConfigManager } from "./MetaDataConfigManager";
+import { EvaluationLogger as Logger} from "./EvaluationLogger";
 
 export class EvaluationSyncer {
     private evaluationManager: EvaluationManager;

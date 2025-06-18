@@ -1,8 +1,8 @@
 import { EvaluationManager } from "./EvaluationManager";
-import { Logger } from "./logger";
+import { EvaluationLogger as Logger } from "./EvaluationLogger";
 import { EvaluationError } from "./errors";
 import crypto from 'crypto';
-import { MetadataConfigManager } from "./metadata";
+import { MetadataConfigManager } from "./MetaDataConfigManager";
 
 export class Evaluator {
     private evaluationManager: EvaluationManager;

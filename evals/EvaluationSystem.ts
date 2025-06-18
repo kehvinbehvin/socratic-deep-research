@@ -1,6 +1,6 @@
-import { EvaluationSyncer } from "./syncer";
+import { EvaluationSyncer } from "./EvaluationSyncer";
 import { Evaluator } from "./evaluator";
-import { Logger } from "./logger";
+import { EvaluationLogger as Logger } from "./EvaluationLogger";
 import fs from 'fs';
 import path from 'path';
 

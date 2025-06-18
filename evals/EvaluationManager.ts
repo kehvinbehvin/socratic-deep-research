@@ -1,6 +1,6 @@
 import OpenAI from "openai";
-import { MetadataConfigManager } from "./metadata";
-import { Logger } from "./logger";
+import { MetadataConfigManager } from "./MetaDataConfigManager";
+import { EvaluationLogger as Logger } from "./EvaluationLogger";
 import { EvaluationError } from "./errors";
 import path from "path";
 import fs from "fs";
