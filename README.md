@@ -99,7 +99,7 @@ A modern learning platform that uses AI-driven Socratic questioning to deepen un
 
 ## Evaluation Framework
 
-The platform includes an automated evaluation framework for Socratic question generation using OpenAI Evals. This framework ensures reproducible, version-controlled evaluations of AI-generated questions.
+The platform includes a custom automated evaluation framework for Socratic question generation using OpenAI Evals. This framework ensures reproducible, version-controlled evaluations of AI-generated questions.
 
 ### Directory Structure
 
@@ -110,13 +110,14 @@ The evaluation system is located in the `/evals` directory:
 │   ├── evaluations.json       # Defines evaluations (criteria, schema, test data, prompts)
 │   ├── evaluation_hashes.json # Tracks changes to evaluation components
 │   ├── evaluations_metadata.json # Stores metadata (UUIDs, file IDs, run IDs)
-│   ├── index.ts               # Orchestrates the evaluation process
-│   ├── metadata.ts            # Manages evaluation metadata and hashes
-│   ├── evaluation.ts          # Handles evaluation creation and runs
+│   ├── index.ts               # Entry point
+│   ├── MetaDataConfigManager.ts # Manages evaluation metadata and hashes
+│   ├── EvaluationManager.ts   # Handles evaluation creation and runs
 │   ├── evaluator.ts           # Runs evaluations
-│   ├── syncer.ts              # Syncs changes and triggers updates
-│   ├── storage.ts             # Manages file storage
-│   └── logger.ts              # Logs evaluation events
+│   ├── EvaluationSyncer.ts    # Syncs changes and triggers updates
+│   ├── JSONFileStorage.ts     # Manages file storage
+│   ├── EvaluationSystem.ts    # Orchestrates the evaluation process
+│   └── EvaluationLogger.ts    # Logs evaluation events
 ```
 
 ### How It Works
