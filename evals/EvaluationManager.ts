@@ -91,7 +91,7 @@ export class EvaluationManager {
             }
             
             const result = await this.openai.evals.create({
-                name: "Socratic Generation",
+                name: `Socratic Generation (${evaluationName})`,
                 data_source_config: {
                     type: "custom",
                     item_schema: {
@@ -139,7 +139,7 @@ export class EvaluationManager {
             }
 
             const run = await this.openai.evals.runs.create(evaluationMetadata.eval_uuid, {
-                name: "Socratic Generation",
+                name: `Socratic Generation (${evaluationName})`,
                 data_source: {
                     type: "completions",
                     model: "gpt-4.1",
