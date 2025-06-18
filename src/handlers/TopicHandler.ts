@@ -57,6 +57,7 @@ export class TopicHandler extends QueueHandler<TopicStageData, QuestionStageData
       where: { id: input.core.topicId }
     });
 
+    // TODO: Update the {} injection because the prompt is shared with the evaluation system.
     const systemPrompt = this.promptService.getSystemPrompt('question_generation');
     const userPrompt = this.promptService.getUserPrompt('question_generation');
 

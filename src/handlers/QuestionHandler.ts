@@ -71,6 +71,7 @@ export class QuestionHandler extends QueueHandler<QuestionStageData, ReflectionS
       throw new Error('Could not find any questions with the provided IDs');
     }
 
+    // TODO: Update the {} injection because the prompt is shared with the evaluation system.
     const systemPrompt = `
     You are a Socratic learning assistant helping someone deeply understand a practical topic. 
     The user has a goal or task they want to achieve in the real world.

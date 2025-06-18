@@ -4,5 +4,11 @@
     "testData": "6b906d6dc2eda5771edf3d78ee5eae3e447dd8750174f3c73edf02f55e498b8c",
     "schema": "7e8c95210861fd0f5825fb9aa972c6217b6b81ed81fc45862f0bbb7ab064e8c5",
     "targetPrompt": "828111050fec3cb60b697b6ca1503479a62ce8e9ba7c777c2492946aace728d9"
+  },
+  "reflection_generation": {
+    "criteria": "d86f6890f736ab1bb5400a1e93c8d3f5ecdcb1001704d831d11a0d85b9bd2056",
+    "testData": "aba6da7698a4c4d0e7cacbe27a6b9e3dbe20332b6b30980bd13c605353204000",
+    "schema": "db35677b11612d8b022ef8a2a28d36159a36cdbb0cb445f65e016e4dfcdd2d7d",
+    "targetPrompt": "717d487a249f78a0e8f34de124da186a61ae4e9f43684983606d3ff83993b76b"
   }
 }

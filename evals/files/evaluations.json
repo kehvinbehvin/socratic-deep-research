@@ -125,5 +125,121 @@
         }
       }
     ]
+  },
+  "reflection_generation": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "topic": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content"
+              ]
+            },
+            "questions": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          },
+          "required": [
+            "topic",
+            "questions"
+          ]
+        },
+        "expected": {
+          "type": "object",
+          "properties": {
+            "reflections": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              }
+            }
+          },
+          "required": [
+            "reflections"
+          ]
+        }
+      },
+      "required": [
+        "input",
+        "expected"
+      ]
+    },
+    "criteria": [
+      {
+        "name": "Socratic reflection quality",
+        "type": "score_model",
+        "model": "gpt-4o-mini",
+        "input": [
+          {
+            "role": "user",
+            "content": "Evaluate whether the model-generated reflections demonstrate thoughtful, structured, and Socratic-style analysis of the original questions. Each reflection should:\n\n1. Clearly articulate the **purpose** of the question in the context of the topic.\n2. Identify **assumptions** implicit in the question.\n3. Specify the **perspective or lens** the question uses (e.g., financial, legal, logistical).\n4. Note what is **missing or underexplored** in the question.\n5. Suggest a meaningful **reframed or complementary question** (only when appropriate) that broadens or deepens inquiry.\n\nThe reflections should help a learner step back and examine their own thinking in order to refine their understanding of the topic.\n\nScore from 1.0 (excellent – reflections are thorough, insightful, and meet all criteria) to 0.0 (poor – shallow, generic, or missing key dimensions)."
+          }
+        ]
+      }
+    ],
+    "targetPrompt": {
+      "system": {
+        "content": "You are a reflection assistant in a Socratic learning system. Your role is to analyze a list of Socratic questions generated to explore a real-world process or task. For each question, produce a structured reflection answering: 1. Purpose – What does this question aim to uncover about the process? 2. Assumption – What does this question assume the asker knows or believes? 3. Perspective – What lens is being used? (e.g., logistical, financial, legal, technical, experiential) 4. Missing – What part of the topic does the question fail to address? 5. Reframe Opportunity – Suggest an improved or complementary question that could broaden the understanding or identify missed subtopics of the topic, but only if necessary. Your reflections should: - Stay grounded in the process described in the topic. - Focus on helping learners discover gaps, structure, and dependencies in their thinking. - Avoid philosophical abstraction unless it directly improves task execution or planning. Input: - Topic: A real-world goal or process the learner wants to understand. - Socratic Questions: A list of 3–7 process-oriented questions. Output Format: Return a JSON array where each item is an object with a single key 'content'. The value of 'content' should be a string that includes the question, purpose, assumption, perspective, missing, and reframe_opportunity, joined by \n line breaks. Example Output Format: [ { 'content': 'Question: ... \\nPurpose: ... \\nAssumption: ... \\nPerspective: ... \\nMissing: ... \\nReframe Opportunity: ...' }, ... ] Example 1 – Topic: 'What is the process of buying a car in San Francisco?' Question: What documentation, financial preparation, and legal requirements must be in place before purchasing a car in San Francisco? Output: { 'content': 'Question: What documentation, financial preparation, and legal requirements must be in place before purchasing a car in San Francisco?\\nPurpose: To clarify what prerequisites are necessary before a buyer can successfully complete a car purchase.\\nAssumption: The learner understands that buying a car involves paperwork and legal steps but may not know the specifics.\\nPerspective: Legal and administrative.\\nMissing: It doesn’t address where to acquire this documentation or how long it takes to obtain.\\nReframe Opportunity: What steps should a first-time buyer take to gather the required paperwork, financing, and approvals before visiting a dealership or seller?' } Example 2 – Topic: 'How to start a podcast' Question: What kind of podcasts are there and what are the differences between them? Output: { 'content': 'Question: What kind of podcasts are there and what are the differences between them?\\nPurpose: To help the learner categorize formats and styles of podcasts before deciding what suits their goals.\\nAssumption: That the learner benefits from choosing a defined podcast type (e.g., interview, narrative, solo).\\nPerspective: Creative and structural.\\nMissing: Does not guide the learner on how to choose based on their content, audience, or personal strengths.\\nReframe Opportunity: What type of podcast format best fits your topic, audience, and personal strengths as a host?' }"
+      },
+      "user": {
+        "content": "Topic: {{ item.input.topic.content }} \n Questions:{{ item.input.questions.content }}\nFormat your response as a JSON object with an array of reflections.\n"
+      }
+    },
+    "testData": [
+      {
+        "input": {
+          "topic": {
+            "content": "What is the process of buying furniture in San Francisco"
+          },
+          "questions": {
+            "content": "What documentation, budgeting, and financing considerations must be addressed before purchasing furniture in San Francisco?\nWhat are the typical sources for buying furniture locally (such as stores, online marketplaces, or secondhand sellers), and what are the pros and cons of each?\nWhat steps should a buyer follow from researching styles and quality to delivery and assembly when purchasing furniture in San Francisco?\nHow do local factors such as delivery logistics, permits for large items, or recycling regulations impact the furniture buying process in San Francisco?\nWhat common challenges or mistakes do furniture buyers face in San Francisco, and what strategies can help avoid these pitfalls?"
+          }
+        },
+        "expected": {
+          "reflections": [
+            {
+              "content": "Question: Why is it important to consider documentation, budgeting, and financing before starting the furniture buying process in San Francisco, and how do these factors influence the overall success of the purchase?\nPurpose: To emphasize the foundational preparations that impact a smooth purchasing process.\nAssumption: That adequate preparation in finance and paperwork leads to fewer complications.\nPerspective: Practical and logistical readiness before engagement.\nMissing: Specific examples of how poor preparation can cause issues.\nReframed Opportunity: Explore how emotional readiness or consumer priorities might also affect the buying process."
+            },
+            {
+              "content": "Question: How do the different sources for buying furniture—such as stores, online marketplaces, and secondhand sellers—reflect varying levels of risk, convenience, and value, and what underlying assumptions should we question when choosing among them?\nPurpose: To understand the trade-offs and considerations between purchasing options.\nAssumption: That each source carries distinct benefits and drawbacks relevant to buyer needs.\nPerspective: Comparative evaluation of purchasing channels.\nMissing: Cultural or environmental factors influencing source preferences.\nReframed Opportunity: Consider how social or ethical factors, like sustainability, impact buying decisions."
+            },
+            {
+              "content": "Question: In what ways does breaking down the furniture purchase into steps like researching styles, evaluating quality, delivery, and assembly help clarify the complexities involved in the process?\nPurpose: To decompose the overall process into manageable and clear stages.\nAssumption: That segmenting the process improves understanding and execution.\nPerspective: Analytical and process-oriented view.\nMissing: The emotional or interpersonal dynamics during each stage.\nReframed Opportunity: Reflect on how unexpected events or changes could disrupt this idealized process."
+            },
+            {
+              "content": "Question: How do local regulations and logistical constraints shape the furniture buying experience in San Francisco, and what broader lessons about regional specificity can we draw from this?\nPurpose: To highlight the impact of location-specific factors on buying decisions.\nAssumption: That understanding local constraints leads to better preparation and fewer surprises.\nPerspective: Contextual and environmental awareness.\nMissing: Insights into how these constraints compare to other regions.\nReframed Opportunity: Investigate how technology or community networks might alleviate local challenges."
+            },
+            {
+              "content": "Question: What are the common pitfalls in furniture buying identified by these questions, and how might recognizing these challenges early lead to better decision-making and problem-solving strategies?\nPurpose: To identify risks and promote proactive approaches to avoid mistakes.\nAssumption: That foreknowledge of pitfalls improves outcomes.\nPerspective: Risk management and strategic planning.\nMissing: Examples of successful mitigation strategies.\nReframed Opportunity: Consider how embracing some risks might offer unexpected opportunities or benefits."
+            }
+          ]
+        }
+      }
+    ]
   }
 }
