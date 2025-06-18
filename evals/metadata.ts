@@ -102,6 +102,10 @@ export class MetadataConfigManager {
         });
 
         await this.save();
+
+        await this.setEvaluationHashes(evaluation);
+
+        await this.save();
     }
 
     // To be called after a new evaluation is created
