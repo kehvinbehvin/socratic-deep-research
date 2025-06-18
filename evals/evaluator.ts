@@ -1,4 +1,4 @@
-import { EvaluationManager } from "./evaluation";
+import { EvaluationManager } from "./EvaluationManager";
 import { Logger } from "./logger";
 import { EvaluationError } from "./errors";
 import crypto from 'crypto';
